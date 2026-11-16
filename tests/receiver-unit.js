@@ -126,10 +126,10 @@ ok(JSON.parse(h.doPost({}).content).error === 'empty' && JSON.parse(h.doPost({ p
 const rl = load({ pilot: PILOT }); rl.setup();
 const lp = J(payload());
 const results = [];
-for (let i = 0; i < 11; i++) results.push(JSON.parse(rl.doPost({ postData: { contents: lp } }).content));
-ok(results.slice(0, 10).every(x => x.ok) && results[10].error === 'rate_limited' && rl.mails.length === 10 && rl.logs.length === 10, '11th send from one link within the hour: rate_limited, not logged, not mailed');
+for (let i = 0; i < 61; i++) results.push(JSON.parse(rl.doPost({ postData: { contents: lp } }).content));
+ok(results.slice(0, 60).every(x => x.ok) && results[60].error === 'rate_limited' && rl.mails.length === 60 && rl.logs.length === 60, '61st send from one link within the hour: rate_limited, not logged, not mailed');
 ok(JSON.parse(rl.doPost({ postData: { contents: J(payload({ linkId: 'OtherLink0000001' })) } }).content).ok, 'another link is not blocked by it');
-rl.props.set('MAX_PER_DAY', '12');
+rl.props.set('MAX_PER_DAY', '62');
 ok(JSON.parse(rl.doPost({ postData: { contents: J(payload({ linkId: 'ThirdLink0000001' })) } }).content).ok
   && JSON.parse(rl.doPost({ postData: { contents: J(payload({ linkId: 'FourthLink000001' })) } }).content).error === 'rate_limited', 'daily cap over all links (property MAX_PER_DAY)');
 

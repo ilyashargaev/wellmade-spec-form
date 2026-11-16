@@ -7,6 +7,6 @@
                      its own list again (script property ALLOWED_DOMAINS), so keep the two the same.
    - sendTimeoutMs:  optional; how long the form waits for the receiver (default 25000). */
 window.SITE_CONFIG = {
-  submitUrl: "",
+  submitUrl: "https://script.google.com/macros/s/AKfycbx8B00ccMAgf3A_7TyZBqLboKYsl6iRyby8rY0Jqrdnklifh0nV6J4VDqHDA72wix0/exec",
   allowedDomains: ["wllmd.com"]
 };
