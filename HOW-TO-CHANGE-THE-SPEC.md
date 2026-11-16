@@ -65,6 +65,7 @@ Every saved answer, download and (later) submission refers to **ids**, not label
 - **Never reuse a removed id** for a different thing: old submissions would then seem to mean the new thing. Pick a new id.
 - Do not change `specId`.
 - Do not edit `spec/presidio-xo.js`, `engine/`, `index.html`, `manager.html`, or the styles.
+- Do not edit `site-config.js` (where answers are sent and which email domains are allowed) or anything in `receiver/`: that is delivery setup, not the spec; ask the person who runs the site.
 
 Removing an option or question is fine: a client who had picked it just sees it unanswered.
 

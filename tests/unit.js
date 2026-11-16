@@ -68,4 +68,15 @@ ok(!('client' in rl.values) && rl.values.address==='Line1 Line2' && rl.values.ph
 ok(E.readLink(S,'#id='+LID+'&id=OtherIdOther1234').id===LID,'first id wins');
 let la=M.applyLink(M.defaultAnswers(),{client:'Jane',address:'12 Main',interior:'x',nope:'y'});
 ok(la.client==='Jane' && la.address==='12 Main' && J(la.interior)===J(["back-left","back-right","right-lower"]),'applyLink fills text questions only');
+// ---- result recipients (Phase 4) ----
+ok(rl.recipients && rl.recipients.length===0,'a link without "to" has no recipients');
+hash=E.linkHash(S,LID,{name:'Jane',address:'1 Main'},['ilya@wllmd.com','kirill@wllmd.com']);
+ok(hash.endsWith('&to=ilya%40wllmd.com%2Ckirill%40wllmd.com'),'linkHash adds "to" (comma-joined, encoded): '+hash);
+ok(J(E.readLink(S,hash).recipients)===J(['ilya@wllmd.com','kirill@wllmd.com']),'readLink gives the recipients back');
+ok(J(E.readLink(S,'#id='+LID+'&to='+encodeURIComponent(' A@Wllmd.com ,a@wllmd.com;b@wllmd.com  evil@x.com')).recipients)===J(['a@wllmd.com','b@wllmd.com','evil@x.com']),'readLink: split, lowercase, no repeats; domains NOT filtered here (the receiver decides)');
+ok(E.readLink(S,'#id='+LID+'&to='+Array.from({length:50},(_,i)=>'u'+i+'@wllmd.com').join(',')).recipients.length===20,'readLink caps the list');
+ok(J(E.parseRecipients('a@wllmd.com, B@wllmd.com;c@wllmd.com d@wllmd.com,,a@wllmd.com'))===J(['a@wllmd.com','b@wllmd.com','c@wllmd.com','d@wllmd.com']),'parseRecipients: commas, semicolons, spaces; lowercase; no repeats');
+let cr=E.checkRecipients(['a@wllmd.com','bob@gmail.com','ilya@wllmd','x@sub.wllmd.com','a@wllmd.com.evil.io'],['wllmd.com']);
+ok(J(cr.good)===J(['a@wllmd.com']) && J(cr.bad.map(b=>b.reason))===J(['domain','format','domain','domain']),'checkRecipients: exact allowed domain only; format vs domain errors');
+ok(E.checkRecipients(['a@wllmd.com'],[]).good.length===0,'no allowed domains = nothing accepted');
 console.log(fails?fails+' FAILED':'ALL PASS'); process.exit(fails?1:0);

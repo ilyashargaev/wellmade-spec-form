@@ -1,7 +1,8 @@
 /* Spec form engine: the manager's link page. Generic: the fields come from spec.link.fields.
    Builds a personal client link: the form page (named by data-form on #manager, resolved
    relative to this page, so it works on any host and from a folder) plus "#id=<random id>&...".
-   Stores nothing and sends nothing: the client details travel only inside the link. */
+   Stores nothing and sends nothing: the client details travel only inside the link.
+   "Send results to" (emails, domains from window.SITE_CONFIG.allowedDomains) travels as "to=". */
 (function () {
   "use strict";
   var root = document.getElementById("manager");
@@ -12,6 +13,9 @@
     return;
   }
   var FIELDS = E.linkFields(SPEC);
+  var SITE = globalThis.SITE_CONFIG || {};
+  var DOMAINS = Array.isArray(SITE.allowedDomains) ? SITE.allowedDomains.map(function (d) { return String(d).toLowerCase(); }) : [];
+  var TO = "to"; // id and error slot of the recipients field (not a spec field)
   var ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"; // 64: no bias
   var ID_LENGTH = 16; // 96 random bits
 
@@ -80,6 +84,22 @@
       err
     ]));
   });
+  // Where the receiver emails this client's results. Not in the spec: it is delivery, not content.
+  var toInput = h("input", {
+    class: "wm-input", id: "m-" + TO, name: TO, type: "text", inputmode: "email", autocomplete: "off",
+    autocapitalize: "off", spellcheck: "false", required: "required", "aria-describedby": "help-" + TO + " err-" + TO
+  });
+  var toErr = h("p", { class: "field-error", id: "err-" + TO, text: "" });
+  toErr.hidden = true;
+  inputs[TO] = { input: toInput, err: toErr, field: { param: TO, label: "Send results to", required: true } };
+  form.appendChild(h("div", { class: "mgr-field mgr-to" }, [
+    h("label", { class: "wm-h3 field-label", for: "m-" + TO, text: "Send results to" }),
+    h("p", { class: "hint", id: "help-" + TO, text: "Results of this client's form are emailed to these addresses. " +
+      (DOMAINS.length ? "Only " + DOMAINS.map(function (d) { return "@" + d; }).join(", ") + " addresses. " : "") +
+      "Several: separate with commas." }),
+    h("div", { class: "field" }, [toInput]),
+    toErr
+  ]));
   form.appendChild(h("button", { type: "submit", class: "wm-btn wm-btn--primary mgr-create", text: "Create link" }));
   main.appendChild(form);
 
@@ -135,14 +155,34 @@
         if (!firstBad) firstBad = inputs[f.param].input;
       } else showError(f.param, "");
     });
+    var recipients = E.parseRecipients(toInput.value);
+    var toProblem = recipientProblem(recipients);
+    showError(TO, toProblem);
+    if (toProblem && !firstBad) firstBad = toInput;
     if (firstBad) { hideResult(); firstBad.focus(); return; }
-    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values);
+    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values, recipients);
     var nameField = FIELDS[0];
     resultTitle.textContent = "Link for " + (values[nameField.param] || "the client");
     status.textContent = "";
     result.hidden = false;
     result.scrollIntoView({ block: "nearest" });
   });
+
+  // One readable sentence naming the first bad address, or "" when the list is fine.
+  function recipientProblem(list) {
+    if (!list.length) return "Send results to is required.";
+    if (!DOMAINS.length) return "No email domain is allowed in site-config.js (allowedDomains), so no address can be accepted.";
+    var c = E.checkRecipients(list, DOMAINS);
+    if (c.bad.length) {
+      var b = c.bad[0];
+      var more = c.bad.length > 1 ? " (and " + (c.bad.length - 1) + " more)" : "";
+      if (b.reason === "format") return "“" + b.address + "” is not a valid email address" + more + ".";
+      return "“" + b.address + "” is not allowed: only " +
+        DOMAINS.map(function (d) { return "@" + d; }).join(", ") + " addresses" + more + ".";
+    }
+    if (list.length > E.RECIPIENTS_MAX) return "At most " + E.RECIPIENTS_MAX + " addresses.";
+    return "";
+  }
 
   function copied(ok) {
     status.textContent = ok ? "Copied. Paste it into a text or email to the client."

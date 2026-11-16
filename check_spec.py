@@ -39,7 +39,7 @@ FIGURE_LAYOUTS = {"product", "product wide"}
 TOP_KEYS = {"specId", "specVersion", "formName", "title", "pageTitle", "model", "modelNote",
             "sources", "brand", "download", "link", "plans", "preview", "steps", "rules"}
 LINK_PARAM_RE = re.compile(r"^[a-z][a-z0-9]*$")
-LINK_RESERVED = {"id"}   # the link id travels as "id" in the part of the link after "#"
+LINK_RESERVED = {"id", "to"}  # the link id travels as "id", the result recipients as "to"
 STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "items"}
 COMMON_Q = {"id", "kind", "label", "hint", "note", "optional"}
 ITEM_KEYS = {
@@ -498,7 +498,7 @@ class Checker:
             if not isinstance(p, str) or not LINK_PARAM_RE.match(p):
                 self.err(fw, '"param" %r must be a short lowercase name of letters and digits, like "name"' % (p,))
             elif p in LINK_RESERVED:
-                self.err(fw, '"param" "%s" is reserved (the link id travels as "id")' % p)
+                self.err(fw, '"param" "%s" is reserved (the link uses "id" for the link id and "to" for the result recipients)' % p)
             elif p in params:
                 self.err(fw, 'duplicate "param" "%s" (also at link > fields[%d])' % (p, params[p]))
             else:

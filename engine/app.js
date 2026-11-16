@@ -1,5 +1,6 @@
 /* Spec form engine: renderer. Generic: draws any spec loaded into window.SPEC_DATA.
-   Classic script. No network except the font in CSS. */
+   Classic script. No network except the font in CSS, and one POST to SITE_CONFIG.submitUrl
+   when the client presses "Send to <brand>" (nothing else ever leaves the browser). */
 (function () {
   "use strict";
   var app = document.getElementById("app");
@@ -19,7 +20,14 @@
   if (LINK && LINK.error) LINK = null;
   var KEY = "spec-form:" + SPEC.specId + (LINK ? ":link:" + LINK.id : "");
   var storageNote = "";
-  var state = { step: STEPS[0].id, answers: M.defaultAnswers() };
+  var state = { step: STEPS[0].id, answers: M.defaultAnswers(), sent: null, view: "form" };
+  // Delivery settings (site-config.js), not spec content. Empty submitUrl = no Send button.
+  var SITE = globalThis.SITE_CONFIG || {};
+  var SEND_URL = typeof SITE.submitUrl === "string" && /^https?:\/\//i.test(SITE.submitUrl.trim()) ? SITE.submitUrl.trim() : "";
+  var SEND_TIMEOUT = typeof SITE.sendTimeoutMs === "number" && SITE.sendTimeoutMs > 0 ? SITE.sendTimeoutMs : 25000;
+  var send = { status: "idle", error: "" }; // idle | sending | error (in memory only)
+  // Who the answers go to, in button and message texts: the spec's brand name (brand.logoAlt).
+  var ORG = (SPEC.brand && SPEC.brand.logoAlt) || "the builder";
   var planLayer = {};   // plan id -> id of the plan question whose layer is active
 
   if (SPEC.pageTitle) document.title = SPEC.pageTitle;
@@ -68,6 +76,10 @@
             (data.linkId || null) !== (LINK ? LINK.id : null)) throw new Error("unusable");
         state.answers = M.sanitize(data.answers);
         if (data.step && STEPS.some(function (s) { return s.id === data.step; })) state.step = data.step;
+        var sd = data.sent;
+        if (sd && typeof sd.at === "string" && typeof sd.submissionId === "string" && typeof sd.fingerprint === "string") {
+          state.sent = { at: sd.at, submissionId: sd.submissionId, fingerprint: sd.fingerprint };
+        }
         restored = true;
       }
     } catch (err) {
@@ -84,7 +96,7 @@
     try {
       localStorage.setItem(KEY, JSON.stringify({
         specId: SPEC.specId, specVersion: SPEC.specVersion, linkId: LINK ? LINK.id : null,
-        step: state.step, answers: state.answers
+        step: state.step, answers: state.answers, sent: state.sent
       }));
       if (storageNote) { storageNote = ""; paintBanner(); }
     } catch (err) {
@@ -520,6 +532,8 @@
     try { localStorage.removeItem(KEY); } catch (err) { /* storage blocked: answers are only in memory */ }
     state.answers = freshAnswers(); // a client link brings its name and address back
     state.step = STEPS[0].id;
+    state.sent = null;
+    send = { status: "idle", error: "" };
     planLayer = {};
     persist();
     render();
@@ -550,6 +564,8 @@
     box.appendChild(h("p", { class: "model", text: SPEC.model }));
     if (SPEC.modelNote) box.appendChild(h("p", { class: "hint", text: SPEC.modelNote }));
     if (step.showPreview) box.appendChild(previewBlock(true));
+    if (SEND_URL) box.appendChild(h("section", { class: "send-panel", id: "send-panel", role: "status", "aria-live": "polite", tabindex: "-1" }));
+    else box.appendChild(h("p", { class: "hint send-off", id: "send-off", text: "Sending to " + ORG + " is not set up yet. Download or print your answers instead." }));
     box.appendChild(h("h3", { class: "wm-h3", text: sum.open.length ? (sum.open.length + " still open") : "Nothing left open" }));
     if (!sum.open.length) box.appendChild(h("p", { class: "hint", text: "Every question has an answer." }));
     sum.open.forEach(function (item) {
@@ -567,6 +583,15 @@
         box.appendChild(h("div", { class: "row" }, [h("div", { class: "k", text: row.label }), value]));
       });
     });
+    if (SEND_URL) {
+      box.appendChild(h("div", { class: "keep-copy" }, [
+        h("h3", { class: "wm-h3", text: "Keep a copy" }),
+        h("div", { class: "keep-copy-btns" }, [
+          h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "print", text: "Print" }),
+          h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "download", text: "Download JSON" })
+        ])
+      ]));
+    }
     box.appendChild(h("div", { class: "reset" }, [
       h("button", { type: "button", class: "wm-btn wm-btn--secondary reset-btn", "data-action": "reset", text: "Start a new form" }),
       h("p", { class: "hint", text: "Clears every answer on this device. Download the JSON first if you need it." })
@@ -651,13 +676,16 @@
 
     var main = h("main", { id: "main" });
     if (step.showPreview && step.kind !== "review") main.className = "has-preview";
-    main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: step.title }));
-    if (step.showModel) main.appendChild(h("p", { class: "model", text: SPEC.model }));
-    if (step.intro) main.appendChild(h("p", { class: "lead", text: step.intro }));
-    if (step.pageRef) main.appendChild(h("p", { class: "page-ref", text: step.pageRef }));
-    if (step.hint) main.appendChild(h("p", { class: "hint", text: step.hint }));
+    if (state.view !== "sent") {
+      main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: step.title }));
+      if (step.showModel) main.appendChild(h("p", { class: "model", text: SPEC.model }));
+      if (step.intro) main.appendChild(h("p", { class: "lead", text: step.intro }));
+      if (step.pageRef) main.appendChild(h("p", { class: "page-ref", text: step.pageRef }));
+      if (step.hint) main.appendChild(h("p", { class: "hint", text: step.hint }));
+    }
 
-    if (step.kind === "review") main.appendChild(renderReview(step));
+    if (state.view === "sent") renderSent(main);
+    else if (step.kind === "review") main.appendChild(renderReview(step));
     else {
       if (step.showPreview) main.appendChild(previewBlock(false));
       renderItems(step, main);
@@ -669,17 +697,25 @@
     var inner = h("div", { class: "bar-in" });
     var back = h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "back", text: "Back" });
     if (idx === 0) back.disabled = true;
-    inner.appendChild(back);
-    if (step.kind === "review") {
+    if (state.view === "sent") {
+      inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "download", text: "Download JSON" }));
+      inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary", "data-action": "goto", "data-step": step.id, text: "Back to my answers" }));
+    } else if (step.kind === "review" && SEND_URL) {
+      inner.appendChild(back);
+      inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary send-btn", id: "send-btn", "data-action": "send", text: "Send to " + ORG }));
+    } else if (step.kind === "review") {
+      inner.appendChild(back);
       inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "print", text: "Print" }));
       inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary", "data-action": "download", text: "Download JSON" }));
     } else {
+      inner.appendChild(back);
       inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary", "data-action": "next", text: "Next" }));
     }
     bar.appendChild(inner);
     app.appendChild(bar);
     paintPlans();
     paintPreview();
+    paintSend();
     measure();
     // Move focus to the heading so a screen reader announces the new step. Styles show a ring
     // only for keyboard focus (:focus-visible), not for this programmatic move after a tap.
@@ -694,6 +730,7 @@
     var fq = focusId && M.question(focusId);
     if (fq && fq.plan) planLayer[fq.plan.id] = fq.id;
     state.step = id;
+    state.view = "form";
     persist();
     render();
     window.scrollTo(0, 0);
@@ -730,11 +767,20 @@
         return {
           section: s.title,
           answers: s.rows.map(function (r) {
-            return { question: r.label, answer: r.inactive || r.empty ? "" : r.answer, inactive: !!r.inactive };
+            var row = { id: r.id, question: r.label, answer: r.inactive || r.empty ? "" : r.answer, inactive: !!r.inactive, optional: !!r.optional };
+            var q = M.question(r.id);
+            if (q && q.options) {
+              // Picked options with their tag (fixed, like "Additional cost", or rule-made, like "Included").
+              row.options = r.inactive ? [] : M.effective(q, state.answers).map(function (oid) {
+                var o = M.option(q, oid), st = M.optionState(q.id, oid, state.answers);
+                return { id: oid, label: o ? o.label : oid, tag: (st && st.tag) || "" };
+              });
+            }
+            return row;
           })
         };
       }),
-      openQuestions: sum.open.map(function (o) { return { section: o.section, question: o.label }; }),
+      openQuestions: sum.open.map(function (o) { return { section: o.section, question: o.label, id: o.id }; }),
       answers: ex.answers,
       tags: ex.tags,
       preview: M.previewState(state.answers).layers.map(function (l) {
@@ -762,7 +808,9 @@
     printSheet.appendChild(h("p", { class: "meta", text: SPEC.model + (SPEC.modelNote ? " · " + SPEC.modelNote : "") }));
     printSheet.appendChild(h("p", { class: "meta", text: "Printed " + new Date().toLocaleString() +
       (SPEC.brand && SPEC.brand.footer ? " · " + SPEC.brand.footer : "") + " · Spec " + SPEC.specId + " v" + SPEC.specVersion + (LINK ? " · Link " + LINK.id : "") }));
-    printSheet.appendChild(h("p", { class: "meta", text: "This summary stays on this device. It is not submitted anywhere." }));
+    printSheet.appendChild(h("p", { class: "meta", text: SEND_URL
+      ? "Printed copy. Answers reach " + ORG + " only when “Send to " + ORG + "” is pressed in the form."
+      : "This summary stays on this device. It is not submitted anywhere." }));
     if (PV) {
       var lines = M.previewState(state.answers).layers.map(function (l) { return l.name + ": " + (l.label || "not picked"); });
       printSheet.appendChild(h("h2", { text: "Finish preview" }));
@@ -794,6 +842,148 @@
     });
   }
 
+  // ---- send to <brand> -------------------------------------------------------
+  // One POST of the export (plus recipients, client details and sentAt) to SITE_CONFIG.submitUrl.
+  // text/plain keeps it a "simple" request (no CORS preflight); Apps Script answers through a
+  // redirect, which fetch follows. Answers stay saved on the device whatever happens.
+  function fingerprint() { return JSON.stringify(M.exportAnswers(state.answers).answers); }
+
+  function buildPayload() {
+    var p = buildExport();
+    p.sentAt = new Date().toISOString();
+    p.recipients = LINK ? LINK.recipients.slice() : [];
+    p.client = globalThis.SpecEngine.linkFields(SPEC).map(function (f) {
+      return { param: f.param, label: f.label, question: f.question, value: String(state.answers[f.question] || "").trim() };
+    });
+    return p;
+  }
+
+  function whenText(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    try { return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
+    catch (err) { return d.toLocaleString(); }
+  }
+
+  function sendError(kind, detail) {
+    if (kind === "offline") return "Could not reach " + ORG + ". Check your internet connection, then press Retry.";
+    if (kind === "timeout") return ORG + " did not answer in time. Press Retry; if it happens again, try a little later.";
+    if (kind === "rate_limited") return "Too many sends from this link for now. Please try again in an hour.";
+    if (kind === "http") return ORG + "’s server had a problem (HTTP " + detail + "). Press Retry.";
+    if (kind === "refused") return ORG + "’s server did not accept the answers (" + detail + "). Press Retry; if it happens again, download the JSON and email it.";
+    return ORG + "’s server gave an unexpected reply. Press Retry.";
+  }
+
+  function postWithTimeout(body) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer;
+    var timeout = new Promise(function (resolve, reject) {
+      timer = setTimeout(function () { if (ctrl) ctrl.abort(); reject({ kind: "timeout" }); }, SEND_TIMEOUT);
+    });
+    var req = fetch(SEND_URL, {
+      method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body,
+      redirect: "follow", credentials: "omit", cache: "no-store", signal: ctrl ? ctrl.signal : undefined
+    }).then(function (res) {
+      if (!res.ok) throw { kind: "http", detail: res.status };
+      return res.text();
+    }, function (err) {
+      throw { kind: err && err.name === "AbortError" ? "timeout" : "offline" };
+    }).then(function (text) {
+      var data;
+      try { data = JSON.parse(text); } catch (err) { throw { kind: "bad" }; }
+      if (data && data.ok === true && typeof data.submissionId === "string" && data.submissionId) return data;
+      if (data && data.ok === false && data.error === "rate_limited") throw { kind: "rate_limited" };
+      if (data && data.ok === false) throw { kind: "refused", detail: String(data.error || "error").slice(0, 60) };
+      throw { kind: "bad" };
+    });
+    return Promise.race([req, timeout]).then(function (v) { clearTimeout(timer); return v; },
+      function (e) { clearTimeout(timer); throw e; });
+  }
+
+  function sendNow() {
+    if (!SEND_URL || send.status === "sending") return;
+    var payload = buildPayload();
+    var print = fingerprint();
+    send = { status: "sending", error: "" };
+    paintSend(true);
+    postWithTimeout(JSON.stringify(payload)).then(function (data) {
+      send = { status: "idle", error: "" };
+      state.sent = { at: payload.sentAt, submissionId: data.submissionId, fingerprint: print };
+      persist();
+      state.view = "sent";
+      render();
+      window.scrollTo(0, 0);
+    }, function (e) {
+      e = e || {};
+      send = { status: "error", error: sendError(e.kind, e.detail) };
+      paintSend(true);
+    });
+  }
+
+  // The status block on Review and the Send button in the bar.
+  function paintSend(scroll) {
+    var panel = document.getElementById("send-panel");
+    var btn = document.getElementById("send-btn");
+    var changed = state.sent && state.sent.fingerprint !== fingerprint();
+    if (btn) {
+      btn.disabled = send.status === "sending";
+      btn.textContent = send.status === "sending" ? "Sending…" : (state.sent ? "Send again" : "Send to " + ORG);
+      btn.setAttribute("aria-busy", send.status === "sending" ? "true" : "false");
+    }
+    if (!panel) return;
+    panel.textContent = "";
+    panel.className = "send-panel";
+    if (send.status === "sending") {
+      panel.classList.add("is-sending");
+      panel.appendChild(h("p", { class: "send-title" }, [h("span", { class: "spinner", "aria-hidden": "true" }), "Sending…"]));
+      panel.appendChild(h("p", { text: "This can take up to 20 seconds. Please keep this page open." }));
+    } else if (send.status === "error") {
+      panel.classList.add("is-error");
+      panel.appendChild(h("p", { class: "send-title", text: "Not sent" }));
+      panel.appendChild(h("p", { id: "send-error", text: send.error }));
+      panel.appendChild(h("p", { text: "Your answers are still here on this device." }));
+      panel.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary", "data-action": "send", id: "send-retry", text: "Retry" }));
+    } else if (state.sent && changed) {
+      panel.classList.add("is-changed");
+      panel.appendChild(h("p", { class: "send-title", text: "Changed since you sent — send again" }));
+      panel.appendChild(h("p", { text: "You sent your answers on " + whenText(state.sent.at) + ", then changed them. Press Send again so " + ORG + " has the latest; the latest one counts." }));
+    } else if (state.sent) {
+      panel.classList.add("is-sent");
+      panel.appendChild(h("p", { class: "send-title", text: "Sent to " + ORG }));
+      panel.appendChild(h("p", { text: "On " + whenText(state.sent.at) + ". Reference " + state.sent.submissionId + ". If you change an answer, send again; the latest one counts." }));
+    } else {
+      var open = M.summary(state.answers).open.length;
+      panel.appendChild(h("p", { class: "send-title", text: "Ready to send?" }));
+      panel.appendChild(h("p", { text: "When you are happy with your answers, press Send to " + ORG + " below." +
+        (open ? " " + open + (open === 1 ? " question is" : " questions are") + " still open; you can send now and send again later." : "") }));
+    }
+    if (scroll) {
+      panel.scrollIntoView({ block: "nearest" });
+      if (send.status === "error") panel.focus({ preventScroll: true });
+    }
+  }
+
+  // Confirmation after a successful send.
+  function renderSent(main) {
+    var s = state.sent;
+    var sum = M.summary(state.answers);
+    main.appendChild(h("div", { class: "sent-mark", "aria-hidden": "true", text: "✓" }));
+    main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: "Sent to " + ORG }));
+    main.appendChild(h("p", { class: "lead", text: "Thank you. " + ORG + " has your choices." }));
+    var dl = h("dl", { class: "sent-facts" });
+    function fact(k, v) { if (v) { dl.appendChild(h("dt", { text: k })); dl.appendChild(h("dd", { text: v })); } }
+    fact("Sent", whenText(s.at));
+    fact("Reference", s.submissionId);
+    globalThis.SpecEngine.linkFields(SPEC).forEach(function (f) { fact(f.label, String(state.answers[f.question] || "").trim()); });
+    fact("Model", SPEC.model);
+    fact("Answers", sum.open.length ? sum.open.length + (sum.open.length === 1 ? " question" : " questions") + " still open" : "Every question answered");
+    main.appendChild(dl);
+    main.appendChild(h("p", { class: "note", id: "sent-again", text: LINK
+      ? "You can reopen this same link, change answers and send again — the latest one counts."
+      : "You can come back to this page, change answers and send again — the latest one counts." }));
+    main.appendChild(h("p", { class: "hint", text: "Your answers stay saved on this device. Download JSON keeps a copy for you." }));
+  }
+
   // ---- events ---------------------------------------------------------------
   app.addEventListener("click", function (e) {
     var btn = e.target.closest ? e.target.closest("[data-action]") : null;
@@ -807,6 +997,7 @@
     else if (action === "next") gotoStep(STEPS[Math.min(STEPS.length - 1, stepIndex(state.step) + 1)].id);
     else if (action === "print") { buildPrint(); window.print(); }
     else if (action === "download") downloadJSON();
+    else if (action === "send") sendNow();
   });
 
   app.addEventListener("input", function (e) {

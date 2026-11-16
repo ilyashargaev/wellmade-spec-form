@@ -448,14 +448,47 @@
     return encodeURIComponent(s).replace(/[!'()*]/g, function (c) { return "%" + c.charCodeAt(0).toString(16).toUpperCase(); });
   }
 
-  // "#id=...&name=..." from a link id and {param: text}. Empty values are left out.
-  function linkHash(spec, id, byParam) {
+  // "#id=...&name=...&to=..." from a link id, {param: text} and an optional list of result
+  // recipients (emails). Empty values are left out.
+  function linkHash(spec, id, byParam, recipients) {
     var parts = ["id=" + encodePart(id)];
     linkFields(spec).forEach(function (f) {
       var v = cleanLinkValue(byParam && byParam[f.param]);
       if (v) parts.push(encodePart(f.param) + "=" + encodePart(v));
     });
+    var to = (recipients || []).filter(Boolean).join(",");
+    if (to) parts.push(LINK_TO_PARAM + "=" + encodePart(to));
     return "#" + parts.join("&");
+  }
+
+  // ---- result recipients ("Send results to") -----------------------------------
+  // The link may carry "to=<email>,<email>": where the receiver emails this client's results.
+  // The page checks them for the manager's convenience; the receiver enforces its own rules,
+  // because anyone can edit a link.
+  var LINK_TO_PARAM = "to";
+  var RECIPIENTS_MAX = 10;
+  var EMAIL_RE = /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
+
+  // Split typed or linked text into addresses: commas, semicolons or spaces; trimmed, lowercase, no repeats.
+  function parseRecipients(text) {
+    var out = [];
+    String(text == null ? "" : text).split(/[\s,;]+/).forEach(function (x) {
+      x = x.trim().toLowerCase();
+      if (x && x.length <= 254 && out.indexOf(x) < 0) out.push(x);
+    });
+    return out;
+  }
+
+  // Sort addresses into good ones and bad ones: [{address, reason: "format" | "domain"}].
+  function checkRecipients(list, allowedDomains) {
+    var allowed = (allowedDomains || []).map(function (d) { return String(d).toLowerCase(); });
+    var good = [], bad = [];
+    (list || []).forEach(function (a) {
+      if (!EMAIL_RE.test(a) || a.length > 254) bad.push({ address: a, reason: "format" });
+      else if (allowed.indexOf(a.slice(a.lastIndexOf("@") + 1)) < 0) bad.push({ address: a, reason: "domain" });
+      else good.push(a);
+    });
+    return { good: good, bad: bad };
   }
 
   // Read a fragment: null when there is none; {error: "..."} when it is not a usable link;
@@ -477,11 +510,15 @@
       var v = f.param in p ? cleanLinkValue(p[f.param]) : "";
       if (v) values[f.question] = v;
     });
-    return { id: p.id, values: values };
+    // Recipients are passed on as the link has them (cleaned, capped); the receiver decides.
+    var recipients = LINK_TO_PARAM in p ? parseRecipients(String(p[LINK_TO_PARAM]).slice(0, 3000)).slice(0, RECIPIENTS_MAX * 2) : [];
+    return { id: p.id, values: values, recipients: recipients };
   }
 
   global.SpecEngine = {
     createModel: createModel, isQuestionKind: isQuestionKind,
-    linkFields: linkFields, linkHash: linkHash, readLink: readLink, LINK_ID_RE: LINK_ID_RE
+    linkFields: linkFields, linkHash: linkHash, readLink: readLink, LINK_ID_RE: LINK_ID_RE,
+    LINK_TO_PARAM: LINK_TO_PARAM, RECIPIENTS_MAX: RECIPIENTS_MAX,
+    parseRecipients: parseRecipients, checkRecipients: checkRecipients
   };
 })(typeof globalThis !== "undefined" ? globalThis : this);

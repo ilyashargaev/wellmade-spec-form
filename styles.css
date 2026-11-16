@@ -392,6 +392,7 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 }
 .bar-in { display: flex; gap: 10px; max-width: 760px; margin: 0 auto; }
 .bar .wm-btn { flex: 1; min-width: 0; padding: 0 16px; }
+.bar .send-btn { flex: 1.8; }
 .wm-btn { min-height: 52px; }
 .wm-btn:disabled { opacity: .38; cursor: default; }
 .wm-chip { min-height: var(--wm-tap); }
@@ -411,6 +412,31 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 .copy-status:empty { display: none; }
 .copy-status { color: var(--wm-teal-deep); font-weight: 500; }
 .mgr-privacy { margin-top: 28px; }
+.mgr-to .hint { margin: 4px 0 0; }
+
+/* Send to Wellmade (Review) and the confirmation screen. */
+.send-panel { margin: 18px 0 0; padding: 14px 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); border: 1px solid var(--wm-teal-line); font-size: 15px; line-height: 1.4; scroll-margin: calc(var(--header-h) + 12px) 0 96px; }
+.send-panel:focus { outline: none; }
+.send-panel p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.send-panel p:last-child { margin-bottom: 0; }
+.send-panel .send-title { font-weight: 500; color: var(--wm-teal-deep); display: flex; align-items: center; gap: 10px; }
+.send-panel.is-error { background: #F8E8E6; border-color: rgba(179, 38, 30, .35); }
+.send-panel.is-error .send-title { color: var(--wm-error); }
+.send-panel.is-changed { background: #FFF6E0; border-color: rgba(160, 110, 0, .35); }
+.send-panel.is-changed .send-title { color: #7A5300; }
+.send-panel .wm-btn { width: 100%; margin-top: 6px; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--wm-teal-line); border-top-color: var(--wm-teal); animation: spin .9s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.send-off { margin-top: 14px; }
+.keep-copy { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--wm-teal-line); }
+.keep-copy-btns { display: flex; gap: 10px; }
+.keep-copy-btns .wm-btn { flex: 1; min-width: 0; }
+.sent-mark { width: 56px; height: 56px; border-radius: 50%; background: var(--wm-teal); color: var(--wm-white); display: grid; place-items: center; font-size: 30px; margin: 8px 0 14px; }
+.sent-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 20px 0 0; padding: 14px 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); font-size: 15px; }
+.sent-facts dt { color: var(--wm-gray); }
+.sent-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; color: var(--wm-ink); }
+#sent-again { margin-top: 18px; color: var(--wm-ink); font-size: 15px; }
 
 #print-sheet { display: none; }
 

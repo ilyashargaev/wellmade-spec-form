@@ -31,8 +31,8 @@ const MH = `window.MG = {
   }; }
 }; true;`;
 
-async function makeLink(b, name, address, phone) {
-  await b.ev(`MG.set('name', ${J(name)}); MG.set('address', ${J(address)}); MG.set('phone', ${J(phone || '')}); MG.create()`);
+async function makeLink(b, name, address, phone, to) {
+  await b.ev(`MG.set('name', ${J(name)}); MG.set('address', ${J(address)}); MG.set('phone', ${J(phone || '')}); MG.set('to', ${J(to || 'ilya@wllmd.com')}); MG.create()`);
   await sleep(150);
   return (await b.ev('MG.state()')).link;
 }
@@ -67,16 +67,16 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
     await b.nav(MANAGER); await b.ev(MH);
     ok(await b.ev('document.documentElement.scrollWidth') <= 390, 'manager page: no horizontal overflow at 390');
     const labels = await b.ev('[...document.querySelectorAll(".mgr-field label")].map(l=>l.textContent)');
-    ok(J(labels) === J(['Client name', 'Address', 'Phone (optional)']), 'manager fields come from spec.link: ' + J(labels));
+    ok(J(labels) === J(['Client name', 'Address', 'Phone (optional)', 'Send results to']), 'manager fields come from spec.link, then Send results to: ' + J(labels));
     ok(await b.ev('document.getElementById("m-phone").type') === 'tel', 'phone input is type tel (from the question inputmode)');
     ok(await b.ev('document.getElementById("link-result").hidden'), 'no link shown before Create');
     await fullShot(b, path.join(SHOTS, '390-manager-empty.png'));
 
     await b.ev('MG.create()'); await sleep(150);
     let st = await b.ev('MG.state()');
-    ok(J(st.errors) === J(['err-name:Client name is required.', 'err-address:Address is required.']) && !st.shown && st.focus === 'm-name',
-      'validation: name and address required, phone not; focus on the first: ' + J(st.errors));
-    await b.ev('MG.set("name","Jane O\'Brien")'); await b.ev('MG.create()'); await sleep(100);
+    ok(J(st.errors) === J(['err-name:Client name is required.', 'err-address:Address is required.', 'err-to:Send results to is required.']) && !st.shown && st.focus === 'm-name',
+      'validation: name, address and recipients required, phone not; focus on the first: ' + J(st.errors));
+    await b.ev('MG.set("name","Jane O\'Brien")'); await b.ev('MG.set("to","ilya@wllmd.com")'); await b.ev('MG.create()'); await sleep(100);
     st = await b.ev('MG.state()');
     ok(J(st.errors) === J(['err-address:Address is required.']) && !st.shown, 'typing clears that field\'s error; address still required');
     await fullShot(b, path.join(SHOTS, '390-manager-errors.png'));
