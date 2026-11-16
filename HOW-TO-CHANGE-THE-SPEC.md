@@ -165,9 +165,13 @@ The form shows one photo with the facade and the deck repainted in the picked st
 - minor (`1.2.0` → `1.3.0`): options, questions or steps added or removed; rules or link fields changed;
 - major (`2.0.0`): only when the engine changes the spec format (a developer does that).
 
-## 10. Publish (to be filled after hosting is chosen)
+## 10. Publish
 
-Hosting is not chosen yet. Until then: a change is "done" when the check passes and the local preview looks right. Whoever publishes later must upload the whole folder (at least `index.html`, `manager.html`, `spec/`, `images/`, `engine/`, the two `.css` files) **after** running the check, so the generated `spec/presidio-xo.js` matches the JSON.
+Pilot test address: https://ilyashargaev.github.io/wellmade-spec-form/ (client form) and `.../manager.html` (link page). It is served from the GitHub repository `ilyashargaev/wellmade-spec-form`, branch `main`; every commit there goes live in about a minute.
+
+During the pilot you do not publish yourself: when the check passes and the local preview looks right, hand the changed `spec/presidio-xo.json` and `images/` files to Wellmade's integration agent, who publishes them. Whoever publishes runs the check **first**, so the generated `spec/presidio-xo.js` matches the JSON, and publishes the whole set of site files (`index.html`, `manager.html`, `spec/`, `images/`, `engine/`, the two `.css` files).
+
+Links already sent to clients keep working after a publish; a client who reopens one sees the new options.
 
 ## 11. Checklist
 
