@@ -12,7 +12,7 @@ All paths are relative to this folder (the one that holds this guide).
 | `images/` | Every picture the spec names (swatches, product photos, plans, the preview photo, the logo). | Add or replace files. |
 | `check_spec.py` | Checks the spec and writes `spec/presidio-xo.js`. | No. Run it. |
 | `spec/presidio-xo.js` | Generated copy of the spec that the page loads. | **Never by hand.** The check writes it. |
-| `index.html` | The client form. `manager.html` — the page that makes a personal client link. | No. Open them to preview. |
+| `index.html` | The client form. `manager.html` — the page that makes a personal client link. | No. Open them to preview (from the folder, `file://`, the plain form opens without a link; on the web the bare address shows a "how to get your link" screen, add `?preview` for the plain form). |
 | `engine/`, `styles.css`, `wellmade-tokens.css`, `tests/`, `tools/` | Code, design, developer tests. | No. |
 
 You need: a plain-text editor that saves UTF-8, and Python 3 (nothing to install). Change only the lines you need; keep the rest of the file (indentation, line endings) as it is.
