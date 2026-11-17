@@ -168,7 +168,7 @@ The form shows one photo with the facade and the deck repainted in the picked st
 
 ## 10. Publish
 
-Pilot test address: https://ilyashargaev.github.io/wellmade-spec-form/ (client form) and `.../manager.html` (link page). It is served from the GitHub repository `ilyashargaev/wellmade-spec-form`, branch `main`; every commit there goes live in about a minute.
+Pilot address: https://spec.wllmd.com/ (client form) and `.../manager.html` (link page). It is served from the GitHub repository `ilyashargaev/wellmade-spec-form`, branch `main`; every commit there goes live in about a minute.
 
 During the pilot you do not publish yourself: when the check passes and the local preview looks right, hand the changed `spec/presidio-xo.json` and `images/` files to Wellmade's integration agent, who publishes them. Whoever publishes runs the check **first**, so the generated `spec/presidio-xo.js` matches the JSON, and publishes the whole set of site files (`index.html`, `manager.html`, `spec/`, `images/`, `engine/`, the two `.css` files).
 
