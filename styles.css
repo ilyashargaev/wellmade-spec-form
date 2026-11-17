@@ -13,7 +13,7 @@ body {
   background: var(--wm-bg);
   color: var(--wm-ink);
   font-family: var(--wm-font);
-  font-size: 16px;
+  font-size: 15px; /* design code: body 15 */
   line-height: 1.5;
 }
 
@@ -39,7 +39,7 @@ button, input, textarea { font-family: inherit; }
 
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .brand img { height: 26px; width: auto; display: block; }
-.eyebrow { margin: 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .02em; }
+.eyebrow { margin: 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; } /* design code: label in capitals */
 
 .progress { height: 3px; background: var(--wm-teal-tint); border-radius: 99px; margin: 12px 0 0; }
 .progress span { display: block; height: 100%; background: var(--wm-teal); border-radius: 99px; }
@@ -78,14 +78,15 @@ button, input, textarea { font-family: inherit; }
 
 main { padding: 20px 20px 132px; }
 
-.wm-h2 { font-size: 32px; }
+.wm-h2 { font-size: 32px; letter-spacing: -1px; line-height: 1.15; } /* design code: section title 32 */
 .model {
   margin: 8px 0 0;
-  color: var(--wm-teal);
-  font-size: 22px;
+  color: var(--wm-ink);
+  font-size: 24px;
   font-weight: 400;
-  letter-spacing: -.4px;
-  line-height: 1.25;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase; /* design code: model name in capitals (28 on the site scale; 24 so the long name fits two lines) */
 }
 .lead { margin: 8px 0 0; color: var(--wm-gray); font-size: 15px; }
 .page-ref { margin: 6px 0 0; color: var(--wm-gray); font-size: 13px; }
@@ -94,7 +95,7 @@ main { padding: 20px 20px 132px; }
 .has-preview .q { scroll-margin-top: calc(var(--header-h) + var(--preview-h) + 12px); }
 .q h3, .q .field-label { margin: 0 0 6px; }
 .field-label { display: block; cursor: pointer; }
-.hint, .note { margin: 6px 0 0; color: var(--wm-gray); font-size: 14px; }
+.hint, .note { margin: 6px 0 0; color: var(--wm-gray); font-size: 13px; } /* design code: hint 13 */
 .note-block { margin-top: 22px; }
 .note-block p { margin: 6px 0 0; }
 
@@ -107,8 +108,8 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 .choice {
   width: 100%;
   min-height: var(--wm-tap);
-  padding: 10px 16px;
-  border-radius: 16px;
+  padding: 10px 20px;
+  border-radius: var(--wm-radius-pill); /* design code: choices are pills */
   border: 1px solid transparent;
   background: var(--wm-teal-tint);
   color: var(--wm-ink);
@@ -169,7 +170,7 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 }
 .photo[aria-pressed="true"] .badge { display: flex; }
 
-.figure { margin-top: 16px; }
+.figure { margin: 16px 0 0; }
 .figure img { width: 100%; height: auto; border-radius: var(--wm-radius-photo); display: block; }
 .figure figcaption { margin-top: 6px; color: var(--wm-gray); font-size: 13px; }
 .figure.product { display: flex; gap: 12px; align-items: center; }
@@ -307,8 +308,8 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   gap: 12px;
   min-height: var(--wm-tap);
   margin-top: 8px;
-  padding: 8px 14px;
-  border-radius: 12px;
+  padding: 8px 20px;
+  border-radius: var(--wm-radius-pill);
   background: var(--wm-teal-mist);
   color: var(--wm-teal-deep);
   text-decoration: none;
@@ -331,6 +332,25 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 .row .k { color: var(--wm-gray); }
 .row .v { overflow-wrap: anywhere; }
 .row .empty { color: var(--wm-gray); }
+/* Review rows: "Edit" is a quiet teal text button (44 px tap height), not a filled block. */
+.row { position: relative; padding-right: 56px; }
+.row .jump {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  width: auto;
+  margin: 0;
+  padding: 0 2px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--wm-teal);
+  font: 500 13px var(--wm-font);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.row .jump:hover { text-decoration: underline; }
+.jump span:last-child { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--wm-teal); }
 .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; background: var(--wm-white); }
 
@@ -441,9 +461,7 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 #print-sheet { display: none; }
 
 @media (max-width: 420px) {
-  .wm-h2 { font-size: 28px; }
   .pair { grid-template-columns: 1fr; }
-  .figure.product { align-items: flex-start; }
   .pv-cap { font-size: 12px; }
 }
 

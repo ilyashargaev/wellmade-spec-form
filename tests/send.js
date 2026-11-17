@@ -290,9 +290,10 @@ async function toReview(b) { await b.ev('T.go("review")'); await sleep(300); awa
     ok(/come back to this page/.test(await b.ev('document.getElementById("sent-again").textContent')), 'plain form confirmation wording');
 
     // ---- sending not set up ---------------------------------------------------------------------
-    siteConfig = null; // the real site-config.js (submitUrl empty)
+    // Since 2026-11-16 the shipped site-config.js holds the live receiver URL, so "not set up" is served as a config object.
     const real = fs.readFileSync(path.join(PILOT, 'site-config.js'), 'utf8');
-    ok(/submitUrl:\s*""/.test(real), 'shipped site-config.js has an empty submitUrl');
+    ok(/submitUrl:\s*"https:\/\/script\.google\.com\/macros\/s\/[^"]+\/exec"/.test(real), 'shipped site-config.js points at an Apps Script /exec URL');
+    siteConfig = { submitUrl: '', allowedDomains: ['wllmd.com'] };
     const postsBefore = mock.posts.length;
     await open(b, link1); await toReview(b);
     ok(await b.ev('!document.getElementById("send-btn") && !document.getElementById("send-panel")'), 'empty submitUrl: no Send button');
