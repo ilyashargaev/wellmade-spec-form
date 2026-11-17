@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "1.2.0",
+  "specVersion": "1.2.1",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -74,9 +74,11 @@
     {
       "id": "project", "title": "Project", "short": "Project", "pageRef": "Spec sheet, pages 1–2",
       "intro": "Studio specifications. The model is filled in. Address, client, and phone are optional.",
-      "hint": "You can leave blanks. This page keeps answers on this device and does not send them anywhere.",
+      "hint": "You can leave blanks.",
       "showModel": true,
       "items": [
+        { "id": "pilotNote", "kind": "note", "title": "Pilot version",
+          "text": "This first version of the form is for one model only: the Presidio with the door on the left (XO). Choosing the model and size comes in the next version. If your studio is a different model or size, tell your Wellmade manager." },
         { "id": "address", "kind": "text", "label": "Address", "autocomplete": "street-address" },
         { "id": "client", "kind": "text", "label": "Client", "autocomplete": "name" },
         { "id": "phone", "kind": "text", "label": "Contact number", "autocomplete": "tel", "inputmode": "tel" },

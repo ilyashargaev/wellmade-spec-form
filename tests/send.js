@@ -281,7 +281,12 @@ async function toReview(b) { await b.ev('T.go("review")'); await sleep(300); awa
     let mail = gas.mails[gas.mails.length - 1];
     ok(J(JSON.parse(mock.posts[mock.posts.length - 1].body).recipients) === J(['evil@gmail.com', 'kirill@wllmd.com']) && mail.to === 'kirill@wllmd.com' && mail.body.includes('evil@gmail.com (domain not allowed)'),
       'edited link with a foreign address: the form passes it on, the receiver drops it and names it in the footer');
-    await open(b, SITE + '/index.html'); await toReview(b);
+    // bare address and a broken link on the web: the 'how to get your link' screen, no form
+    await open(b, SITE + '/');
+    ok(await b.ev('!document.getElementById("send-btn") && !document.querySelector(".step-jump") && /How to start/.test(document.querySelector("main").textContent) && !document.querySelector(".nolink-warn")'), 'bare address: "how to get your link" screen, no form');
+    await open(b, SITE + '/index.html#id=bad');
+    ok(await b.ev('!document.querySelector(".step-jump") && /not complete/.test((document.querySelector(".nolink-warn")||{}).textContent||"")'), 'broken link: same screen plus "This link is not complete"');
+    await open(b, SITE + '/index.html?preview'); await toReview(b);
     await b.ev('document.getElementById("send-btn").click();true');
     await waitFor(b, 'document.querySelector("main h1").textContent === "Sent to Wellmade"');
     mail = gas.mails[gas.mails.length - 1];

@@ -38,7 +38,7 @@ async function run390() {
     await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Shift', code: 'ShiftLeft', windowsVirtualKeyCode: 16 });
     await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Shift', code: 'ShiftLeft', windowsVirtualKeyCode: 16 });
     const fk = await b.ev('(()=>{const t=document.getElementById("step-title"); t.blur(); t.focus(); return {vis:t.matches(":focus-visible"), outline:getComputedStyle(t).outlineStyle};})()');
-    ok(fk.vis && fk.outline === 'solid', 'after a key press the heading shows a focus ring: ' + J(fk));
+    ok(fk.outline === 'none', 'heading never shows a focus ring, even after a key press (Chrome showed one after every reload; changed 2026-11-17): ' + J(fk));
 
     await b.ev('T.click("permits","building");T.click("permits","electrical")');
     ok(J(await b.ev('T.on("permits")')) === '["building","electrical"]', 'Building + Electrical together');

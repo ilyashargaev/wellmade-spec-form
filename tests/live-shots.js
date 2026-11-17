@@ -20,7 +20,7 @@ const STEPS = ['project', 'permits', 'equipment', 'electrical', 'skylight', 'fin
       if (sw > iw || ex.length || iw !== w) { bad++; console.log('BAD ' + line + ' ' + JSON.stringify(ex)); } else console.log('ok  ' + line);
     };
     await b.nav(SITE + '/manager.html?t=' + Date.now()); await sleep(800); await shot('manager');
-    await b.nav(SITE + '/index.html?t=' + Date.now()); await sleep(1000); await b.ev(HELP);
+    await b.nav(SITE + '/index.html?preview&t=' + Date.now()); await sleep(1000); await b.ev(HELP);
     for (const s of STEPS) { await b.ev('T.go("' + s + '")'); await sleep(500); await b.ev('window.scrollTo(0,0);true'); await shot(s); }
     b.close();
   }

@@ -617,7 +617,7 @@
     }
     items.forEach(function (item) {
       if (item.kind === "note") {
-        main.appendChild(h("section", { class: "note-block" }, [
+        main.appendChild(h("section", { class: "note-block wm-card note-card" }, [ // design code: info card
           item.title ? h("h2", { class: "wm-h3", text: item.title }) : null,
           h("p", { text: item.text })
         ]));
@@ -1012,6 +1012,29 @@
   // Another link pasted into the same tab changes only the fragment: reload so it gets its own answers.
   window.addEventListener("hashchange", function () { location.reload(); });
 
+  // On the web, the bare address (no personal link) or a broken link shows a short "how to get your
+  // link" screen instead of an empty form. The plain form still opens from file:// (local work, tests)
+  // and with "?preview" in the address (staff demos).
+  var PLAIN_OK = location.protocol === "file:" || /(?:^|&)preview(?:=|&|$)/.test(location.search.slice(1));
+  if (!LINK && !PLAIN_OK) { renderNoLink(); return; }
+
   load();
   render();
+
+  function renderNoLink() {
+    app.textContent = "";
+    app.classList.add("nolink");
+    app.appendChild(h("header", { class: "top" }, [h("div", { class: "brand" }, [
+      SPEC.brand && SPEC.brand.logo ? h("img", { src: SPEC.brand.logo, alt: SPEC.brand.logoAlt || "" }) : h("span")
+    ])]));
+    var main = h("main", { id: "main" });
+    main.appendChild(h("h1", { class: "wm-h2", text: "Finishes and options for your " + ORG + " studio" }));
+    main.appendChild(h("p", { class: "lead", text: "This is where " + ORG + " clients choose the finishes and options for their studio. Each client gets a personal link to their own form." }));
+    if (linkNote) main.appendChild(h("p", { class: "nolink-warn", role: "status", text: "This link is not complete: part of it was probably cut off when it was copied." }));
+    main.appendChild(h("h2", { class: "wm-h3 nolink-h", text: "How to start" }));
+    main.appendChild(h("p", { class: "nolink-p", text: "Open the personal link your " + ORG + " manager sent you. Your form opens with your details already filled in." }));
+    main.appendChild(h("p", { class: "nolink-p", text: "No link yet, or it does not open? Ask your " + ORG + " manager to send it again." }));
+    if (SPEC.brand && SPEC.brand.footer) main.appendChild(h("p", { class: "page-ref nolink-foot", text: SPEC.brand.footer }));
+    app.appendChild(main);
+  }
 })();
