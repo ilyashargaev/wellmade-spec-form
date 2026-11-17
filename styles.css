@@ -417,6 +417,17 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
 .wm-btn:disabled { opacity: .38; cursor: default; }
 .wm-chip { min-height: var(--wm-tap); }
 
+/* Internal pages (design code, "Internal pages"): a deliberate break from the client look.
+   Gray page instead of white, a dark strip under the logo; the header with the logo stays white. */
+body.internal { background: var(--wm-internal-page); }
+.internal .app { background: var(--wm-internal-sheet); }
+.internal-strip { margin: 14px -20px 0; padding: 10px 20px 12px; background: var(--wm-internal-strip); color: var(--wm-white); }
+.internal-strip p { margin: 0; }
+.internal-label { font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.internal-text { font-size: 15px; line-height: 1.4; }
+.internal .top { border-bottom: 0; }
+.internal .link-out { background: var(--wm-white); }
+
 /* Manager's link page (manager.html): no bottom bar, so less room below. */
 .manager main { padding-bottom: 40px; }
 .mgr-field { margin-top: 22px; }
