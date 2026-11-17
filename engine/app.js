@@ -29,6 +29,7 @@
   // Who the answers go to, in button and message texts: the spec's brand name (brand.logoAlt).
   var ORG = (SPEC.brand && SPEC.brand.logoAlt) || "the builder";
   var planLayer = {};   // plan id -> id of the plan question whose layer is active
+  var seenLayer = {};   // plan id -> {question id: true} for layers shown at least once (this visit only)
 
   if (SPEC.pageTitle) document.title = SPEC.pageTitle;
 
@@ -226,7 +227,51 @@
   function activeLayer(planId, group) {
     var cur = planLayer[planId];
     if (!group.some(function (q) { return q.id === cur; })) cur = planLayer[planId] = group[0].id;
+    if (!SEEN_IO) markSeen(planId, cur); // no IntersectionObserver: count the active layer as seen
     return cur;
+  }
+
+  // A layer counts as seen when it was the active one while the plan was on screen,
+  // or when the client switched to it (chip or Next).
+  function markSeen(planId, qid) { (seenLayer[planId] = seenLayer[planId] || {})[qid] = true; }
+  var SEEN_IO = typeof IntersectionObserver === "function" ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var box = e.target.closest(".planbox");
+      if (!box) return;
+      var pid = box.id.slice(5);
+      var cur = planLayer[pid];
+      if (cur && !(seenLayer[pid] || {})[cur]) { markSeen(pid, cur); paintPlan(pid); }
+    });
+  }, { threshold: 0.5 }) : null;
+
+  // Next walks through every layer the client has not opened yet, so nobody skips the outlets
+  // because they did not see that the chips switch layers. Chips still switch freely.
+  function nextUnseenLayer() {
+    var boxes = app.querySelectorAll(".planbox");
+    for (var i = 0; i < boxes.length; i++) {
+      var pid = boxes[i].id.slice(5);
+      var group = planGroup(pid);
+      if (group.length < 2) continue;
+      for (var j = 0; j < group.length; j++) {
+        var q = group[j];
+        if (!(seenLayer[pid] || {})[q.id] && !M.isInactive(q.id, state.answers)) return { plan: pid, q: q };
+      }
+    }
+    return null;
+  }
+
+  function paintNext() {
+    var nb = app.querySelector('.bar [data-action="next"]');
+    if (!nb) return;
+    var t = nextUnseenLayer();
+    nb.textContent = t ? "Next: " + (t.q.plan.legend || t.q.label) : "Next";
+    nb.classList.toggle("next-layer", !!t);
+  }
+
+  function layerHint(n) {
+    var words = ["", "One", "Two", "Three", "Four", "Five", "Six"];
+    return (words[n] || String(n)) + " things go on this plan. Tap a name to switch between them; Next also takes you through each one.";
   }
 
   function planGroup(planId) {
@@ -245,6 +290,7 @@
           type: "button", class: "layer-chip", "data-action": "layer", "data-plan": planId, "data-qid": q.id
         }, [h("span", { text: q.plan.legend || q.label }), h("span", { class: "count" })]));
       });
+      box.appendChild(h("p", { class: "hint layer-hint", text: layerHint(group.length) }));
       box.appendChild(chips);
     }
     var img = h("img", { src: plan.image, alt: plan.alt, draggable: "false" });
@@ -261,7 +307,9 @@
         inner.appendChild(btn);
       });
     });
-    box.appendChild(h("div", { class: "plan-stage" }, [inner]));
+    var stage = h("div", { class: "plan-stage" }, [inner]);
+    box.appendChild(stage);
+    if (SEEN_IO && group.length > 1) SEEN_IO.observe(stage);
     box.appendChild(h("div", { class: "legend", id: "legend-" + planId, "aria-hidden": "true" }));
     group.forEach(function (q) {
       var block = questionBlock(q);
@@ -311,9 +359,11 @@
     for (var c = 0; c < chips.length; c++) {
       var cq = M.question(chips[c].getAttribute("data-qid"));
       var n = M.effective(cq, state.answers).length;
+      var seen = !!(seenLayer[planId] || {})[cq.id];
       chips[c].setAttribute("aria-pressed", cq.id === active ? "true" : "false");
+      chips[c].classList.toggle("seen", seen);
       chips[c].querySelector(".count").textContent = n ? String(n) : "";
-      chips[c].setAttribute("aria-label", (cq.plan.legend || cq.label) + (n ? ", " + n + " picked" : ", none picked"));
+      chips[c].setAttribute("aria-label", (cq.plan.legend || cq.label) + (n ? ", " + n + " picked" : ", none picked") + (seen ? "" : ", not opened yet"));
     }
     group.forEach(function (q) {
       var block = document.getElementById("q-" + q.id);
@@ -328,6 +378,7 @@
     legend.appendChild(legendItem("", "Not selected"));
     if (otherPicks) legend.appendChild(legendItem("passive on", "Picked in another layer"));
     if (activeQ && activeQ.kind === "plan-single") legend.appendChild(h("span", { class: "legend-note", text: "One only" }));
+    paintNext();
   }
 
   function paintPlans() {
@@ -337,6 +388,7 @@
 
   function setLayer(planId, qid, focusChip) {
     planLayer[planId] = qid;
+    markSeen(planId, qid);
     paintPlan(planId);
     if (focusChip) {
       var chip = app.querySelector('.layer-chip[data-plan="' + planId + '"][data-qid="' + qid + '"]');
@@ -535,6 +587,7 @@
     state.sent = null;
     send = { status: "idle", error: "" };
     planLayer = {};
+    seenLayer = {};
     persist();
     render();
     window.scrollTo(0, 0);
@@ -651,6 +704,7 @@
   function render() {
     var step = currentStep();
     var idx = stepIndex(step.id);
+    if (SEEN_IO) SEEN_IO.disconnect(); // plans of the previous render are gone
     app.textContent = "";
     var top = h("header", { class: "top" });
     top.appendChild(h("div", { class: "brand" }, [
@@ -994,7 +1048,14 @@
     else if (action === "reset") resetForm();
     else if (action === "goto") gotoStep(btn.getAttribute("data-step"), btn.getAttribute("data-qid"));
     else if (action === "back") gotoStep(STEPS[Math.max(0, stepIndex(state.step) - 1)].id);
-    else if (action === "next") gotoStep(STEPS[Math.min(STEPS.length - 1, stepIndex(state.step) + 1)].id);
+    else if (action === "next") {
+      var unseen = nextUnseenLayer();
+      if (unseen) {
+        setLayer(unseen.plan, unseen.q.id, true);
+        var pb = document.getElementById("plan-" + unseen.plan), top = app.querySelector(".top");
+        if (pb) window.scrollTo(0, pb.getBoundingClientRect().top + window.scrollY - (top ? top.getBoundingClientRect().height : 0) - 8);
+      } else gotoStep(STEPS[Math.min(STEPS.length - 1, stepIndex(state.step) + 1)].id);
+    }
     else if (action === "print") { buildPrint(); window.print(); }
     else if (action === "download") downloadJSON();
     else if (action === "send") sendNow();

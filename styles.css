@@ -214,6 +214,11 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   text-align: center;
 }
 .layer-chip:focus-visible { outline: 2px solid var(--wm-teal-deep); outline-offset: 2px; }
+/* A layer the client has opened gets a check; Next walks through the ones without it (engine/app.js nextUnseenLayer). */
+.layer-chip.seen::before { content: "\2713"; font-weight: 700; color: var(--wm-teal); margin-right: -2px; }
+.layer-chip.seen[aria-pressed="true"]::before { color: var(--wm-white); }
+.layer-hint { margin: 0 0 10px; }
+.bar .next-layer { flex: 1.8; }
 .plan-stage {
   /* padding keeps 44 px tap targets at the plan edge inside the frame */
   padding: 16px;
