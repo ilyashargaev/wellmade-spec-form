@@ -6,4 +6,4 @@ Client form for choosing the finishes of a Wellmade shed (Presidio XO), plus a p
 - Manager's link page: `manager.html`
 - To change options, pictures or rules: read [HOW-TO-CHANGE-THE-SPEC.md](HOW-TO-CHANGE-THE-SPEC.md). Only `spec/presidio-xo.json` and `images/` are edited; run `python -I check_spec.py` before publishing.
 
-Pilot test address. The form keeps answers in the client's browser; nothing is sent anywhere yet.
+Pilot address: https://spec.wllmd.com/ (manager page: https://spec.wllmd.com/manager.html). The form keeps answers in the client's browser and sends them to Wellmade only when the client presses Send to Wellmade.
