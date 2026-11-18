@@ -533,8 +533,9 @@ body.zoom-open { overflow: hidden; }
 .figure.hero-top { margin: 4px 0 18px; }
 .figure.hero-mid { margin: 14px 0 6px; }
 
-/* Logo clear space in logo heights (L = logo height): space under the logo = 0.75 L (was 12 px ≈ 0.46 L). */
+/* Logo clear space in logo heights (L = logo height): one L above the logo and one L under it, to the progress line. */
 :root { --logo-h: 26px; }
 .brand img { height: var(--logo-h); }
-.progress { margin-top: calc(var(--logo-h) * .75); }
-.nolink .top { padding-bottom: calc(var(--logo-h) * .75); }
+.top { padding-top: var(--logo-h); }
+.progress { margin-top: var(--logo-h); }
+.nolink .top { padding-bottom: var(--logo-h); }
