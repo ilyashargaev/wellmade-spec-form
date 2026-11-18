@@ -528,3 +528,7 @@ body.zoom-open { overflow: hidden; }
 .photos:not(.drawings) .photo .name { font-size: 13px; }
 .photos:not(.drawings) .badge { top: 6px; right: 6px; width: 24px; height: 24px; font-size: 14px; }
 .photos:not(.drawings) .photo { align-self: start; } /* a button centers its content: keep all swatches top-aligned when names wrap */
+
+/* v3: photo in the step header (step.heroLayout) */
+.figure.hero-top { margin: 4px 0 18px; }
+.figure.hero-mid { margin: 14px 0 6px; }

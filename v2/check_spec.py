@@ -40,7 +40,7 @@ TOP_KEYS = {"specId", "specVersion", "formName", "title", "pageTitle", "model", 
             "sources", "brand", "download", "link", "plans", "preview", "steps", "rules"}
 LINK_PARAM_RE = re.compile(r"^[a-z][a-z0-9]*$")
 LINK_RESERVED = {"id", "to"}  # the link id travels as "id", the result recipients as "to"
-STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "items"}
+STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "heroLayout", "items"}
 COMMON_Q = {"id", "kind", "label", "hint", "note", "optional"}
 ITEM_KEYS = {
     "text": COMMON_Q | {"autocomplete", "inputmode", "suffix"},
@@ -228,6 +228,8 @@ class Checker:
                 step_ids.add(sid_)
             self.keys(step, STEP_KEYS, swhere)
             self.need_str(step, "title", swhere)
+            if "heroLayout" in step and step["heroLayout"] not in ("imageFirst", "titleFirst"):
+                self.err(swhere, 'heroLayout must be "imageFirst" or "titleFirst"')
             for b in ("showModel", "showPreview"):
                 self.need_bool(step, b, swhere)
             if step.get("kind") not in (None, "review"):

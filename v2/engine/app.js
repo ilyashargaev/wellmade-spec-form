@@ -655,8 +655,15 @@
   }
 
   // ---- step page ------------------------------------------------------------
-  function renderItems(step, main) {
-    var items = step.items || [];
+  function figureEl(item, extra) {
+    return h("figure", { class: "figure" + (item.layout ? " " + item.layout : "") + (extra || "") }, [
+      h("img", { src: item.image, alt: item.alt || "" }),
+      h("figcaption", { text: item.caption || "" })
+    ]);
+  }
+
+  function renderItems(step, main, skip) {
+    var items = (step.items || []).filter(function (it) { return it !== skip; });
     var mountedPlans = {};
     var notedRules = {};
     function ruleNotesFor(item) {
@@ -679,10 +686,7 @@
         return;
       }
       if (item.kind === "figure") {
-        main.appendChild(h("figure", { class: "figure" + (item.layout ? " " + item.layout : "") }, [
-          h("img", { src: item.image, alt: item.alt || "" }),
-          h("figcaption", { text: item.caption || "" })
-        ]));
+        main.appendChild(figureEl(item));
         return;
       }
       if (item.plan) {
@@ -732,8 +736,17 @@
 
     var main = h("main", { id: "main" });
     if (step.showPreview && step.kind !== "review") main.className = "has-preview";
+    // v3: step.heroLayout pulls the step's first figure into the header.
+    // "imageFirst" = photo above the title; "titleFirst" = title, photo, then the text.
+    // "?layout=a" / "?layout=b" in the address overrides it (to compare the two).
+    var heroLayout = step.heroLayout || "";
+    var lm = /(?:^|&)layout=([ab])(?:&|$)/.exec(location.search.slice(1));
+    if (heroLayout && lm) heroLayout = lm[1] === "b" ? "titleFirst" : "imageFirst";
+    var heroItem = heroLayout && step.items && step.items[0] && step.items[0].kind === "figure" ? step.items[0] : null;
     if (state.view !== "sent") {
+      if (heroItem && heroLayout === "imageFirst") main.appendChild(figureEl(heroItem, " hero-top"));
       main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: step.title }));
+      if (heroItem && heroLayout === "titleFirst") main.appendChild(figureEl(heroItem, " hero-mid"));
       if (step.showModel) main.appendChild(h("p", { class: "model", text: SPEC.model }));
       if (step.intro) main.appendChild(h("p", { class: "lead", text: step.intro }));
       if (step.pageRef) main.appendChild(h("p", { class: "page-ref", text: step.pageRef }));
@@ -744,7 +757,7 @@
     else if (step.kind === "review") main.appendChild(renderReview(step));
     else {
       if (step.showPreview) main.appendChild(previewBlock(false));
-      renderItems(step, main);
+      renderItems(step, main, heroItem);
     }
     if (SPEC.brand && SPEC.brand.footer) main.appendChild(h("p", { class: "page-ref", text: SPEC.brand.footer }));
     app.appendChild(main);
