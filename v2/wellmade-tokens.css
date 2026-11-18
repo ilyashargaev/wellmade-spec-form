@@ -22,9 +22,12 @@
   --wm-radius-pill: 1600px;
   --wm-radius-photo: 20px;
   --wm-radius-card: 16px;
-  --wm-radius-box: 10px;
+  --wm-radius-box: 12px;
   --wm-radius-input: 12px;
   --wm-tap: 44px;
+  /* Spacing: a 4-point grid (CSS px = iOS points = Android dp). Every margin, padding, gap and radius is one of these steps. */
+  --wm-space-1: 4px; --wm-space-2: 8px; --wm-space-3: 12px; --wm-space-4: 16px; --wm-space-5: 20px;
+  --wm-space-6: 24px; --wm-space-7: 28px; --wm-space-8: 32px; --wm-space-10: 40px; --wm-space-12: 48px;
 }
 
 body { margin: 0; background: var(--wm-bg); color: var(--wm-ink); font-family: var(--wm-font); font-size: 15px; line-height: 1.5; }
@@ -40,7 +43,7 @@ body { margin: 0; background: var(--wm-bg); color: var(--wm-ink); font-family: v
 .wm-btn--primary { background: var(--wm-teal); color: var(--wm-white); }
 .wm-btn--secondary { background: transparent; color: var(--wm-teal); }
 
-.wm-chip { display: inline-flex; align-items: center; min-height: 41px; padding: 0 19px; border-radius: var(--wm-radius-pill);
+.wm-chip { display: inline-flex; align-items: center; min-height: 40px; padding: 0 20px; border-radius: var(--wm-radius-pill);
   background: var(--wm-teal-tint); color: var(--wm-ink); font: 500 13px var(--wm-font); border: 0; cursor: pointer; }
 .wm-chip[aria-pressed="true"] { background: var(--wm-teal); color: var(--wm-white); }
 
@@ -48,5 +51,5 @@ body { margin: 0; background: var(--wm-bg); color: var(--wm-ink); font-family: v
 .wm-box { border: 1px solid var(--wm-teal-line); border-radius: var(--wm-radius-box); padding: 12px 16px; }
 .wm-tag { display: inline-block; padding: 2px 8px; border-radius: var(--wm-radius-pill); background: var(--wm-teal-tint);
   color: var(--wm-teal-deep); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
-.wm-input { width: 100%; box-sizing: border-box; min-height: 88px; padding: 12px 14px; border: 1px solid #DADADA;
+.wm-input { width: 100%; box-sizing: border-box; min-height: 88px; padding: 12px 16px; border: 1px solid #DADADA;
   border-radius: var(--wm-radius-input); background: var(--wm-white); font: 400 15px var(--wm-font); color: var(--wm-ink); }
