@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "2.1.0",
+  "specVersion": "2.2.0",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -200,8 +200,6 @@
             { "id": "center", "label": "S2 — Center opening", "marker": "S2", "x": 60.45, "y": 35.54 },
             { "id": "right", "label": "S3 — Right opening", "marker": "S3", "x": 82.67, "y": 35.54 }
           ] },
-        { "id": "skyComments", "kind": "lines", "label": "Comments on the skylight", "optional": true },
-        { "id": "additions", "kind": "lines", "label": "Custom additions", "optional": true },
         { "id": "equipComments", "kind": "lines", "label": "Comments", "optional": true }
       ]
     },

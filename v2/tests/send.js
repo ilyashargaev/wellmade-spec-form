@@ -194,7 +194,7 @@ async function toReview(b) { await b.ev('T.go("review")'); await sleep(300); awa
     ok(mail1.subject === "Spec form: Jane O'Brien & <Co> — 12 Main St #4, San Leandro, CA · " + SPEC.model + ' · v' + SPEC.specVersion, 'receiver subject: ' + mail1.subject);
     ok(mail1.htmlBody.includes('Jane O&#39;Brien &amp; &lt;Co&gt;') && !mail1.htmlBody.includes('<Co>'), 'receiver HTML: client text escaped');
     ok(mail1.body.includes('Trex Transcend – Spiced Rum — Additional cost') && mail1.body.includes('Link id: ' + id1), 'receiver text: answers with tags, link id');
-    ok(/\n  Custom additions: None\n/.test(mail1.body) && /\n  Connection: Not answered\n/.test(mail1.body), 'receiver text: empty optional = "None", empty required = "Not answered" (as on Review)');
+    ok(/\n  Comments: None\n/.test(mail1.body) && /\n  Connection: Not answered\n/.test(mail1.body), 'receiver text: empty optional = "None", empty required = "Not answered" (as on Review)');
     const log1 = gas.logs[gas.logs.length - 1];
     ok(JSON.parse(log1.content).rawBody === mock.posts[0].body && log1.name.includes('_' + id1 + '_'), 'receiver log: raw body kept byte for byte, file ' + log1.name);
     fs.writeFileSync(path.join(OUT, 'mail-1.txt'), mail1.subject + '\n\n' + mail1.body);
