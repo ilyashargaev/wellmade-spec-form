@@ -759,7 +759,6 @@
       if (step.showPreview) main.appendChild(previewBlock(false));
       renderItems(step, main, heroItem);
     }
-    if (SPEC.brand && SPEC.brand.footer) main.appendChild(h("p", { class: "page-ref", text: SPEC.brand.footer }));
     app.appendChild(main);
 
     var bar = h("div", { class: "bar" });

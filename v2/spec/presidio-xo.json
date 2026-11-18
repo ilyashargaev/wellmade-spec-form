@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "2.2.0",
+  "specVersion": "2.3.0",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -72,7 +72,8 @@
 
   "steps": [
     {
-      "id": "project", "title": "Welcome to the Wellmade Finish Selector", "heroLayout": "imageFirst", "short": "Project", "pageRef": "Spec sheet, pages 1–2",
+      "id": "project", "title": "Welcome to the Wellmade Finish Selector", "heroLayout": "imageFirst", "short": "Project",
+      "hint": "Please check your details below, then press Next.",
       "intro": "This is a key step: we build your studio from these choices, and once they're final we submit for permits. All standard finishes are included in your price.",
       "items": [
         { "id": "hero", "kind": "figure", "image": "images/hero.jpg",
@@ -80,8 +81,7 @@
           "caption": "Presidio, door on the left (XO)." },
         { "id": "address", "kind": "text", "label": "Address", "autocomplete": "street-address" },
         { "id": "client", "kind": "text", "label": "Client", "autocomplete": "name" },
-        { "id": "phone", "kind": "text", "label": "Contact number", "autocomplete": "tel", "inputmode": "tel" },
-        { "id": "customizations", "kind": "lines", "label": "Shed customizations", "optional": true }
+        { "id": "phone", "kind": "text", "label": "Contact number", "autocomplete": "tel", "inputmode": "tel" }
       ]
     },
     {
