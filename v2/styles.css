@@ -539,3 +539,6 @@ body.zoom-open { overflow: hidden; }
 .top { padding-top: var(--logo-h); }
 .progress { margin-top: var(--logo-h); }
 .nolink .top { padding-bottom: var(--logo-h); }
+
+/* On scroll the logo and progress line slide away; the step buttons stay (top = minus the part above them, set by engine/app.js). */
+.top { top: calc(-1 * var(--top-hide, 0px)); }

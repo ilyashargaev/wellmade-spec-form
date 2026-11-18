@@ -11,8 +11,10 @@ const seen='[...document.querySelectorAll(".layer-chip.seen")].map(c=>c.dataset.
 await b.nav(fileUrl(path.join(BP,'index.html'))+'#id=LayerTest0000001&name=Layer%20Test&address=1%20Test%20St');await sleep(1200);await b.ev('localStorage.clear();true');await b.reload();await sleep(1000);await b.ev(HELP);
 await b.ev('T.go("electrical")');await sleep(300);await b.ev(HELP);
 await b.ev('window.scrollTo(0,0);true');await sleep(300);
-ok(await b.ev(nextTxt)==='Next: Breaker box','A at the top, plan not on screen: '+await b.ev(nextTxt)+' | seen '+await b.ev(seen));await shot('1-start');
-await b.ev('document.querySelector(".bar [data-action=next]").click();true');await sleep(400);
+// 2026-11-18: with one Comments field the plan can already be on screen at the top (then the breaker counts as seen).
+const planOnTop=await b.ev('(()=>{const r=document.getElementById("plan-electrical").getBoundingClientRect();return r.top<innerHeight-80})()');
+ok(await b.ev(nextTxt)===(planOnTop?'Next: Exterior outlets':'Next: Breaker box'),'A at the top (plan on screen: '+planOnTop+'): '+await b.ev(nextTxt)+' | seen '+await b.ev(seen));await shot('1-start');
+if(!planOnTop){await b.ev('document.querySelector(".bar [data-action=next]").click();true');await sleep(400);}
 ok(await b.ev(active)==='breaker'&&await b.ev(nextTxt)==='Next: Exterior outlets','A2 Next scrolls to the plan, breaker layer; label '+await b.ev(nextTxt));await shot('1b-breaker');
 ok(await b.ev('innerWidth')===390&&await b.ev('document.documentElement.scrollWidth')<=390,'390 no h-scroll');
 const bw=await b.ev('JSON.stringify([...document.querySelectorAll(".bar .wm-btn")].map(x=>[x.textContent,Math.round(x.getBoundingClientRect().height),x.scrollWidth<=x.clientWidth]))');console.log('bar',bw);
@@ -26,7 +28,7 @@ await b.ev('document.querySelector(".bar [data-action=next]").click();true');awa
 ok(await b.ev("document.getElementById('step-title').textContent")==='Review','E then Next goes to Review (v2: Electrical is the last step before Review)');
 // client who clicks layers himself
 await b.ev('localStorage.clear();true');await b.reload();await sleep(1000);await b.ev(HELP);await b.ev('T.go("electrical")');await sleep(300);await b.ev(HELP);
-await b.ev('window.scrollTo(0,0);true');await sleep(200);await b.ev('T.layer("interior")');await sleep(150);ok(await b.ev(nextTxt)==='Next: Breaker box','F opened interior himself (plan not scrolled to): Next -> '+await b.ev(nextTxt));
+await b.ev('window.scrollTo(0,0);true');await sleep(200);await b.ev('T.layer("interior")');await sleep(150);ok(['Next: Breaker box','Next: Exterior outlets'].includes(await b.ev(nextTxt)),'F opened interior himself: Next still walks the unseen layers -> '+await b.ev(nextTxt));
 await b.ev('T.layer("exterior")');await sleep(150);await b.ev('T.layer("breaker")');await sleep(150);ok(await b.ev(nextTxt)==='Next','G all opened by chips: plain Next');
 await b.ev('localStorage.clear();true');await b.reload();await sleep(1000);await b.ev(HELP);await b.ev('T.go("electrical")');await sleep(300);await b.ev(HELP);
 await b.ev('document.getElementById("plan-electrical").scrollIntoView();true');await sleep(400);ok(await b.ev(nextTxt)==='Next: Exterior outlets','H scrolled to the plan himself: breaker counts as seen');

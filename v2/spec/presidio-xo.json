@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "2.3.0",
+  "specVersion": "2.4.0",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -85,7 +85,7 @@
       ]
     },
     {
-      "id": "permits", "title": "Permits", "short": "Permits", "pageRef": "Spec sheet, page 2",
+      "id": "permits", "title": "Permits", "short": "Permits",
       "intro": "How this studio will be permitted.",
       "items": [
         { "id": "permits", "kind": "multi", "label": "Permitting",
@@ -99,7 +99,7 @@
       ]
     },
     {
-      "id": "finishes", "title": "Finishes", "short": "Finishes", "pageRef": "Spec sheet, pages 6–7",
+      "id": "finishes", "title": "Finishes", "short": "Finishes",
       "intro": "Outside in: the facade stain, the deck, then the floor inside. Swatches are the color reference. Preview colors are approximate; tap the preview to see it bigger.",
       "showPreview": true,
       "items": [
@@ -112,7 +112,6 @@
             { "id": "coastal-white", "label": "Coastal White", "image": "images/stain-4.jpg", "color": "#afa59d" },
             { "id": "midnight-black", "label": "Midnight Black", "image": "images/stain-5.jpg", "color": "#3a3c41" }
           ] },
-        { "id": "stainComments", "kind": "lines", "label": "Comments on the stain", "optional": true },
         { "id": "decking", "kind": "single", "layout": "photos", "label": "Decking",
           "hint": "Choose one. Tap again to clear. For custom decking, describe it in Comments.",
           "groups": [
@@ -138,7 +137,6 @@
               "image": "images/decking-6.jpg", "color": "#6f5846" },
             { "id": "custom", "label": "Custom decking", "color": null }
           ] },
-        { "id": "deckingComments", "kind": "lines", "label": "Comments on decking", "optional": true },
         { "id": "deckConfig", "kind": "single", "layout": "drawings", "label": "Deck configuration",
           "hint": "Choose one. Tap again to clear.",
           "options": [
@@ -150,7 +148,6 @@
           "hint": "Feet. Used only for a custom corner deck." },
         { "id": "dimB", "kind": "text", "label": "B dimension", "suffix": "feet",
           "hint": "Feet. Used only for a custom corner deck." },
-        { "id": "deckComments", "kind": "lines", "label": "Comments on the deck", "optional": true },
         { "id": "floor", "kind": "single", "layout": "photos", "label": "Floor colors",
           "hint": "Choose one. Tap again to clear.",
           "options": [
@@ -158,11 +155,11 @@
             { "id": "dark-gray", "label": "Dark Gray — Waterproof Laminate", "image": "images/floor-2.jpg" },
             { "id": "white-oak", "label": "White Oak — Engineered Hardwood", "image": "images/floor-3.jpg" }
           ] },
-        { "id": "floorComments", "kind": "lines", "label": "Comments on the floor", "optional": true }
+        { "id": "finishComments", "kind": "lines", "label": "Comments", "optional": true }
       ]
     },
     {
-      "id": "addons", "title": "Add-ons", "short": "Add-ons", "pageRef": "Spec sheet, pages 3 and 5",
+      "id": "addons", "title": "Add-ons", "short": "Add-ons",
       "intro": "Heat pump, wall heater, and skylight.",
       "items": [
         { "id": "heatPumpPhoto", "kind": "figure", "layout": "product wide", "image": "images/heat-pump.jpg",
@@ -204,7 +201,7 @@
       ]
     },
     {
-      "id": "electrical", "title": "Electrical", "short": "Electrical", "pageRef": "Spec sheet, pages 3–4",
+      "id": "electrical", "title": "Electrical", "short": "Electrical",
       "intro": "Connection, then the breaker and outlets on the plan. The door is on the left.",
       "items": [
         { "id": "connection", "kind": "multi", "label": "Connection",
@@ -215,7 +212,6 @@
             { "id": "ethernet", "label": "Ethernet connection" },
             { "id": "third-party", "label": "Electrical work completed by a third-party contractor" }
           ] },
-        { "id": "connectionComments", "kind": "lines", "label": "Comments", "optional": true },
         { "id": "breaker", "kind": "plan-single", "label": "Breaker box location",
           "hint": "Choose one (please select JUST ONE location). Tap again to clear.",
           "note": "As a default, Wellmade installs 125amp 2 circuit breaker box at 5'-0\" above ground. Also, there is one exterior outlet right under the electrical breaker box as a default option. Select more exterior outlets if you would like.",
@@ -235,7 +231,6 @@
             { "id": "right-upper", "label": "E3 — Right side, upper, outside", "marker": "E3", "x": 96.91, "y": 38.63 },
             { "id": "right-lower", "label": "E4 — Right side, lower, outside", "marker": "E4", "x": 96.76, "y": 66.85 }
           ] },
-        { "id": "extComments", "kind": "lines", "label": "Comments on the breaker and exterior outlets", "optional": true },
         { "id": "interior", "kind": "plan-multi", "label": "Interior outlet locations",
           "hint": "Select all that apply.",
           "note": "Wellmade installs 3 interior outlets inside your Studio at 18\" above floor level. See the plan for locations. (3 outlets marked on the plan come with a base model). If you would like more outlets (at additional charge), please leave comments below. A change of location needs confirmation in Comments.",
@@ -248,7 +243,7 @@
             { "id": "right-upper", "label": "I4 — Right wall, upper, inside", "marker": "I4", "x": 83.16, "y": 38.40 },
             { "id": "right-lower", "label": "I5 — Right wall, lower, inside", "marker": "I5", "x": 82.94, "y": 66.62 }
           ] },
-        { "id": "intComments", "kind": "lines", "label": "Comments on interior outlets", "optional": true }
+        { "id": "electricalComments", "kind": "lines", "label": "Comments", "optional": true }
       ]
     },
     {

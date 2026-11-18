@@ -119,7 +119,12 @@
     var top = app.querySelector(".top");
     var pv = document.getElementById("finish-preview");
     var root = document.documentElement.style;
-    if (top) root.setProperty("--header-h", Math.ceil(top.getBoundingClientRect().height) + "px");
+    // The logo and progress line scroll away; only the step buttons stay pinned.
+    // --top-hide = how far the header slides up; --header-h = what stays visible.
+    var nav = top ? top.querySelector(".steps") : null;
+    var hide = nav ? nav.offsetTop : 0;
+    root.setProperty("--top-hide", hide + "px");
+    if (top) root.setProperty("--header-h", (Math.ceil(top.getBoundingClientRect().height) - hide) + "px");
     root.setProperty("--preview-h", pv ? Math.ceil(pv.getBoundingClientRect().height) + "px" : "0px");
   }
   window.addEventListener("resize", measure);
@@ -1066,8 +1071,9 @@
       var unseen = nextUnseenLayer();
       if (unseen) {
         setLayer(unseen.plan, unseen.q.id, true);
-        var pb = document.getElementById("plan-" + unseen.plan), top = app.querySelector(".top");
-        if (pb) window.scrollTo(0, pb.getBoundingClientRect().top + window.scrollY - (top ? top.getBoundingClientRect().height : 0) - 8);
+        var pb = document.getElementById("plan-" + unseen.plan);
+        var pinned = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0; // step buttons only
+        if (pb) window.scrollTo(0, pb.getBoundingClientRect().top + window.scrollY - pinned - 8);
       } else gotoStep(STEPS[Math.min(STEPS.length - 1, stepIndex(state.step) + 1)].id);
     }
     else if (action === "print") { buildPrint(); window.print(); }
