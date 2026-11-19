@@ -1,0 +1,283 @@
+{
+  "specId": "presidio-xo",
+  "specVersion": "3.0.0",
+  "formName": "Wellmade Presidio XO spec",
+  "title": "Presidio spec sheet",
+  "pageTitle": "Presidio spec sheet · Wellmade",
+  "model": "Presidio, door on the left (XO)",
+  "sources": [
+    "2026-11-04 Presidio Spec Sheet XO (from Emily).pdf",
+    "2026-11-04 Finishes (from Emily).pdf"
+  ],
+  "brand": {
+    "logo": "images/wellmade-logo-teal-grey.png",
+    "logoAlt": "Wellmade",
+    "footer": "San Leandro, CA · wllmd.com · sales@wllmd.com"
+  },
+  "download": {
+    "fileName": "presidio-xo-spec",
+    "prefixFrom": "client"
+  },
+  "link": {
+    "fields": [
+      { "param": "name", "question": "client", "label": "Client name", "required": true },
+      { "param": "address", "question": "address", "label": "Address", "required": true },
+      { "param": "phone", "question": "phone", "label": "Phone", "required": false }
+    ]
+  },
+
+  "plans": {
+    "electrical": {
+      "image": "images/plan-electrical.png",
+      "alt": "Presidio floor plan, door on the left. Four exterior outlet spots, five interior outlet spots, interior can lights, light switches by the door, and exterior can lights along the front.",
+      "width": 1100,
+      "howTo": "This is the floor plan of your studio, seen from above. You place three things on it, one after another."
+    },
+    "roof": {
+      "image": "images/plan-skylight.png",
+      "alt": "Presidio roof plan, door on the left, with three possible skylight openings. Dimensions above the back wall read 10 feet, 6 feet, and 2 feet.",
+      "width": 520
+    }
+  },
+
+  "preview": {
+    "photo": "images/preview-presidio.jpg",
+    "crop": [40, 40, 960, 507],
+    "alt": "Presidio studio with the picked stain on the facade and the picked decking on the deck.",
+    "caption": "Approx. colors",
+    "empty": "Pick a stain and decking to see them here.",
+    "layers": [
+      { "id": "facade", "name": "Stain", "question": "stain",
+        "add": [
+          [[312, 102], [938, 102], [938, 502], [312, 502]],
+          [[201, 102], [320, 102], [320, 202], [282, 202]],
+          [[281, 202], [316, 202], [316, 440], [281, 440]]
+        ],
+        "cut": [
+          [[316, 200], [604, 200], [604, 502], [316, 502]],
+          [[680, 198], [857, 198], [857, 273], [680, 273]],
+          [[677, 416], [941, 416], [941, 506], [677, 506]],
+          [[454, 106], [480, 106], [480, 120], [454, 120]],
+          [[749, 106], [774, 106], [774, 120], [749, 120]]
+        ] },
+      { "id": "deck", "name": "Decking", "question": "decking",
+        "add": [
+          [[125, 465], [320, 465], [320, 497], [688, 497], [688, 505], [960, 505], [965, 517], [66, 517]]
+        ],
+        "cut": [
+          [[269, 420], [317, 420], [317, 470], [269, 470]]
+        ] }
+    ]
+  },
+
+  "prices": {
+    "unit": "magic beans",
+    "note": "Prices here are placeholders in a made-up currency. Real prices in dollars come later."
+  },
+
+  "cover": {
+    "image": "images/hero.jpg",
+    "alt": "Presidio studio with the door on the left, wood front, and a corner deck.",
+    "caption": "Your studio: Presidio, door on the left.",
+    "hello": "Hello, {client}",
+    "title": "Welcome to the Wellmade Finish Selector",
+    "text": [
+      "You received this form to choose the details of your future studio.",
+      "We order materials and build from your answers, so please make sure they are what you really want."
+    ],
+    "button": "Let's start"
+  },
+
+  "steps": [
+    {
+      "id": "finishes", "title": "Finishes", "short": "Finishes",
+      "intro": "Let's start outside. Choose the stain for the walls and watch the picture change. Picture colors are approximate; the samples are the reference.",
+      "showPreview": true,
+      "items": [
+        { "id": "stain", "kind": "single", "layout": "photos", "label": "Exterior stain",
+          "options": [
+            { "id": "natural-pine", "label": "Natural Pine", "image": "images/stain-1.jpg", "color": null },
+            { "id": "weathered-brown", "label": "Weathered Brown", "image": "images/stain-2.jpg", "color": "#876f5b" },
+            { "id": "stone-gray", "label": "Stone Gray", "image": "images/stain-3.jpg", "color": "#9c9e9f" },
+            { "id": "coastal-white", "label": "Coastal White", "image": "images/stain-4.jpg", "color": "#afa59d" },
+            { "id": "midnight-black", "label": "Midnight Black", "image": "images/stain-5.jpg", "color": "#3a3c41" }
+          ] },
+        { "id": "decking", "kind": "single", "layout": "photos", "label": "Decking",
+          "lead": "Now the deck. First, the boards.",
+          "hint": "For custom decking, describe it in Comments below.",
+          "groups": [
+            { "id": "trex-select", "title": "Trex Select series",
+              "text": "Durable composite decking with a subtle woodgrain texture. Included when a deck is selected." },
+            { "id": "trex-transcend", "title": "Trex Transcend series",
+              "text": "Enhanced woodgrain texture, richer colours and thicker deck boards. Additional cost." },
+            { "id": "timbertech", "title": "TimberTech decking",
+              "text": "Premium composite decking with distinctive woodgrain textures and rich colour variations. Additional cost." }
+          ],
+          "options": [
+            { "id": "trex-select-pebble-grey", "group": "trex-select", "label": "Trex Select – Pebble Grey", "tag": "Included",
+              "image": "images/decking-1.jpg", "color": "#898786" },
+            { "id": "trex-select-saddle", "group": "trex-select", "label": "Trex Select – Saddle", "tag": "Included",
+              "image": "images/decking-2.jpg", "color": "#85593c" },
+            { "id": "trex-transcend-havana-gold", "group": "trex-transcend", "label": "Trex Transcend – Havana Gold", "tag": "Additional cost",
+              "image": "images/decking-3.jpg", "color": "#856c54" },
+            { "id": "trex-transcend-spiced-rum", "group": "trex-transcend", "label": "Trex Transcend – Spiced Rum", "tag": "Additional cost",
+              "image": "images/decking-4.jpg", "color": "#6a5244" },
+            { "id": "timbertech-ashwood", "group": "timbertech", "label": "TimberTech – Ashwood", "tag": "Additional cost",
+              "image": "images/decking-5.jpg", "color": "#756a5e" },
+            { "id": "timbertech-dark-roast", "group": "timbertech", "label": "TimberTech – Dark Roast", "tag": "Additional cost",
+              "image": "images/decking-6.jpg", "color": "#6f5846" },
+            { "id": "custom", "label": "Custom decking", "color": null }
+          ] },
+        { "id": "deckConfig", "kind": "single", "layout": "drawings", "label": "Deck configuration",
+          "lead": "Then the shape of the deck.",
+          "options": [
+            { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
+            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 40 },
+            { "id": "custom", "label": "Custom corner deck", "image": "images/deck-custom.png", "tag": "Priced by size" }
+          ] },
+        { "id": "dimA", "kind": "text", "label": "A dimension", "suffix": "feet",
+          "hint": "In feet. See A on the drawing of the custom corner deck." },
+        { "id": "dimB", "kind": "text", "label": "B dimension", "suffix": "feet",
+          "hint": "In feet. See B on the drawing of the custom corner deck." },
+        { "id": "floor", "kind": "single", "layout": "photos", "label": "Floor colors",
+          "lead": "Now step inside: the floor.",
+          "options": [
+            { "id": "light-gray", "label": "Light Gray — Waterproof Laminate", "image": "images/floor-1.jpg" },
+            { "id": "dark-gray", "label": "Dark Gray — Waterproof Laminate", "image": "images/floor-2.jpg" },
+            { "id": "white-oak", "label": "White Oak — Engineered Hardwood", "image": "images/floor-3.jpg" }
+          ] },
+        { "id": "finishComments", "kind": "lines", "label": "Comments", "optional": true }
+      ]
+    },
+    {
+      "id": "addons", "title": "Add-ons", "short": "Add-ons",
+      "intro": "Would you like any of these? Please answer for each one.",
+      "items": [
+        { "id": "heatPumpCard", "kind": "card", "title": "Heat pump AC unit",
+          "image": "images/heat-pump.jpg", "alt": "Wall heat pump." },
+        { "id": "heatpump", "kind": "single", "label": "Heat pump AC unit", "card": "heatPumpCard", "hideLabel": true,
+          "options": [
+            { "id": "heat-pump", "label": "Heat pump unit" },
+            { "id": "no-heat-pump", "label": "NO heat pump" }
+          ] },
+        { "id": "heaterCard", "kind": "card", "title": "Wall mounted heater",
+          "image": "images/heater.jpg", "alt": "White wall heater." },
+        { "id": "heater", "kind": "single", "label": "Wall mounted heater", "card": "heaterCard", "hideLabel": true,
+          "options": [
+            { "id": "heater", "label": "Wall Heater" },
+            { "id": "no-heater", "label": "NO heater" }
+          ] },
+        { "id": "skylightCard", "kind": "card", "title": "Skylight",
+          "text": "24\" x 46\". Opens by hand or with a remote.",
+          "image": "images/skylight-unit.jpg", "alt": "Operable skylight, shown open." },
+        { "id": "skylightType", "kind": "single", "label": "Skylight", "card": "skylightCard", "hideLabel": true,
+          "options": [
+            { "id": "manual", "label": "Manual operable skylight", "price": 12 },
+            { "id": "solar", "label": "Solar-powered operable skylight", "price": 15 },
+            { "id": "none", "label": "NO skylight" }
+          ] },
+        { "id": "skylightLoc", "kind": "plan-single", "label": "Skylight location", "card": "skylightCard",
+          "ask": "Where should the skylight go?",
+          "hint": "This is the roof of your studio, seen from above. Tap one of the three spots.",
+          "plan": { "id": "roof", "shape": "circle", "legend": "Skylight" },
+          "options": [
+            { "id": "left", "label": "S1 — Left opening", "marker": "S1", "x": 38.94, "y": 36.04 },
+            { "id": "center", "label": "S2 — Center opening", "marker": "S2", "x": 60.45, "y": 35.54 },
+            { "id": "right", "label": "S3 — Right opening", "marker": "S3", "x": 82.67, "y": 35.54 }
+          ] },
+        { "id": "equipComments", "kind": "lines", "label": "Comments", "optional": true }
+      ]
+    },
+    {
+      "id": "electrical", "title": "Electrical", "short": "Electrical",
+      "intro": "By default Wellmade installs a 125 amp, 2 circuit breaker box 5 ft above the ground, one exterior outlet right under it, and 3 interior outlets 18\" above the floor. Below you choose the connection and where everything goes.",
+      "items": [
+        { "id": "connection", "kind": "multi", "label": "Connection",
+          "hint": "Choose plug-in or hardline. Add Ethernet or third-party work if you need them.",
+          "options": [
+            { "id": "plug-in", "label": "Plug-in electrical connection" },
+            { "id": "hardline", "label": "Hardline connection from main panel" },
+            { "id": "ethernet", "label": "Ethernet connection" },
+            { "id": "third-party", "label": "Electrical work completed by a third-party contractor" }
+          ] },
+        { "id": "breaker", "kind": "plan-single", "label": "Breaker box location",
+          "ask": "Where should the breaker box go?",
+          "hint": "Tap one of the four spots on the plan, B1 to B4.",
+          "plan": { "id": "electrical", "shape": "circle", "legend": "Breaker box" },
+          "options": [
+            { "id": "back-left", "label": "B1 — Back-left, outside", "marker": "B1", "x": 27.73, "y": 11.35 },
+            { "id": "back-right", "label": "B2 — Back-right, outside", "marker": "B2", "x": 75.21, "y": 11.31 },
+            { "id": "right-upper", "label": "B3 — Right side, upper, outside", "marker": "B3", "x": 91.77, "y": 38.40 },
+            { "id": "right-lower", "label": "B4 — Right side, lower, outside", "marker": "B4", "x": 91.60, "y": 66.62 }
+          ] },
+        { "id": "exterior", "kind": "plan-multi", "label": "Exterior outlet locations",
+          "ask": "Do you want more exterior outlets?",
+          "hint": "One exterior outlet right under the breaker box is included. Tap other spots to add more; each one has a price.",
+          "plan": { "id": "electrical", "shape": "square", "legend": "Exterior outlets" },
+          "options": [
+            { "id": "back-left", "label": "E1 — Back-left, outside", "marker": "E1", "x": 27.67, "y": 2.80 },
+            { "id": "back-right", "label": "E2 — Back-right, outside", "marker": "E2", "x": 75.21, "y": 2.80 },
+            { "id": "right-upper", "label": "E3 — Right side, upper, outside", "marker": "E3", "x": 96.91, "y": 38.63 },
+            { "id": "right-lower", "label": "E4 — Right side, lower, outside", "marker": "E4", "x": 96.76, "y": 66.85 }
+          ] },
+        { "id": "interior", "kind": "plan-multi", "label": "Interior outlet locations",
+          "ask": "Where do you want the interior outlets?",
+          "hint": "Three interior outlets are included and already marked. Tap other spots to add more; each one has a price. To move an included outlet, tap it off, tap the new spot, and tell us in Comments.",
+          "plan": { "id": "electrical", "shape": "diamond", "legend": "Interior outlets" },
+          "options": [
+            { "id": "back-left", "label": "I1 — Back-left, inside", "marker": "I1", "x": 27.88, "y": 23.94 },
+            { "id": "back-right", "label": "I2 — Back-right, inside", "marker": "I2", "x": 75.21, "y": 24.37 },
+            { "id": "left-upper", "label": "I3 — Left wall, upper, inside", "marker": "I3", "x": 19.94, "y": 38.20 },
+            { "id": "right-upper", "label": "I4 — Right wall, upper, inside", "marker": "I4", "x": 83.16, "y": 38.40 },
+            { "id": "right-lower", "label": "I5 — Right wall, lower, inside", "marker": "I5", "x": 82.94, "y": 66.62 }
+          ] },
+        { "id": "electricalComments", "kind": "lines", "label": "Comments", "optional": true }
+      ]
+    },
+    {
+      "id": "permits", "title": "Permits", "short": "Permits",
+      "intro": "Last question. You probably already know whether your studio needs a permit. Not sure? Leave this empty: your manager will contact you about it.",
+      "items": [
+        { "id": "permits", "kind": "multi", "label": "Permitting",
+          "emptyText": "Left empty: your manager will contact you",
+          "hint": "Building and Electrical can be combined.",
+          "options": [
+            { "id": "building", "label": "Building Permit" },
+            { "id": "electrical", "label": "Electrical Permit" },
+            { "id": "none", "label": "NO permit" }
+          ] },
+        { "id": "permitComments", "kind": "lines", "label": "Comments", "optional": true }
+      ]
+    },
+    {
+      "id": "review", "kind": "review", "title": "Review", "short": "Review",
+      "intro": "Please check everything once more: we order materials and build from this. Then press Send.",
+      "detailsTitle": "Your details",
+      "detailsHint": "Please check that these are right.",
+      "showPreview": true,
+      "items": [
+        { "id": "address", "kind": "text", "label": "Address", "autocomplete": "street-address" },
+        { "id": "client", "kind": "text", "label": "Client", "autocomplete": "name" },
+        { "id": "phone", "kind": "text", "label": "Contact number", "autocomplete": "tel", "inputmode": "tel" }
+      ]
+    }
+  ],
+
+  "rules": [
+    { "type": "alone", "question": "permits", "option": "none",
+      "why": "NO permit cannot be combined with Building or Electrical." },
+    { "type": "exclusive", "question": "connection", "options": ["plug-in", "hardline"],
+      "why": "Plug-in and hardline are two ways of the same connection; Ethernet and third-party stay independent." },
+    { "type": "includedBy", "question": "exterior", "source": "breaker",
+      "map": { "back-left": "back-left", "back-right": "back-right", "right-upper": "right-upper", "right-lower": "right-lower" },
+      "includedTag": "Included", "extraTag": "Extra charge", "extraPrice": 3, "pendingTag": "Depends on breaker box",
+      "why": "PDF page 4: one exterior outlet right under the breaker box is included; more than one at extra charge." },
+    { "type": "baseIncluded", "question": "interior", "options": ["back-left", "back-right", "right-lower"],
+      "includedTag": "Included", "extraTag": "Additional charge", "extraPrice": 3, "swapTag": "Confirm in Comments",
+      "why": "PDF page 4: the 3 outlets joined to the 'Interior Outlets' label come with the base model; more at additional charge." },
+    { "type": "disables", "when": { "question": "skylightType", "isNot": ["manual", "solar"] }, "targets": ["skylightLoc"],
+      "hide": true, "why": "The location is asked only after a skylight is chosen." },
+    { "type": "disables", "when": { "question": "deckConfig", "isNot": "custom" }, "targets": ["dimA", "dimB"],
+      "hide": true, "note": "A and B apply to a custom corner deck." }
+  ]
+}

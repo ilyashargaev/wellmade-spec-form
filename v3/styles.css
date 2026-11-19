@@ -1,0 +1,601 @@
+/* Form styles. Design tokens live in wellmade-tokens.css (linked first from index.html). */
+@font-face {
+  font-family: "BDO Grotesk";
+  src: url("https://cdn.prod.website-files.com/663b716352cc952b743da92c/663b76a94ebc222642c2c1ae_BDOGrotesk-VF.ttf") format("truetype");
+  font-weight: 300 900;
+  font-display: swap;
+}
+
+:root { --wm-tap: 44px; --header-h: 0px; --preview-h: 0px; } /* --header-h and --preview-h are measured at run time by engine/app.js */
+
+body {
+  margin: 0;
+  background: var(--wm-bg);
+  color: var(--wm-ink);
+  font-family: var(--wm-font);
+  font-size: 15px; /* design code: body 15 */
+  line-height: 1.5;
+}
+
+button, input, textarea { font-family: inherit; }
+
+.app {
+  max-width: 760px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--wm-white);
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  padding: 16px 20px 0;
+  border-bottom: 1px solid var(--wm-teal-line);
+}
+
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand img { height: 26px; width: auto; display: block; }
+.eyebrow { margin: 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; } /* design code: label in capitals */
+
+.progress { height: 3px; background: var(--wm-teal-tint); border-radius: 100px; margin: 12px 0 0; }
+.progress span { display: block; height: 100%; background: var(--wm-teal); border-radius: 100px; }
+
+.steps {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0 12px;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  scrollbar-width: thin;
+}
+.step-jump {
+  flex: 0 0 auto;
+  min-height: var(--wm-tap);
+  padding: 0 16px;
+  border-radius: var(--wm-radius-pill);
+  border: 0;
+  background: var(--wm-teal-tint);
+  color: var(--wm-ink);
+  font: 500 13px var(--wm-font);
+  cursor: pointer;
+}
+.step-jump[aria-current="step"] { background: var(--wm-teal); color: var(--wm-white); }
+
+.banner {
+  margin: 0;
+  padding: 12px 20px;
+  background: #F8E8E6;
+  color: var(--wm-error);
+  font-size: 14px;
+}
+.banner[hidden], .q[hidden], .note[hidden] { display: none; }
+
+main { padding: 20px 20px 132px; }
+
+.wm-h2 { font-size: 32px; letter-spacing: -1px; line-height: 1.15; } /* design code: section title 32 */
+.model {
+  margin: 8px 0 0;
+  color: var(--wm-ink);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase; /* design code: model name in capitals (28 on the site scale; 24 so the long name fits two lines) */
+}
+.lead { margin: 8px 0 0; color: var(--wm-gray); font-size: 15px; }
+.page-ref { margin: 8px 0 0; color: var(--wm-gray); font-size: 13px; }
+
+.q { margin-top: 28px; scroll-margin-top: calc(var(--header-h) + 12px); }
+.has-preview .q { scroll-margin-top: calc(var(--header-h) + var(--preview-h) + 12px); }
+.q h3, .q .field-label { margin: 0 0 8px; }
+.field-label { display: block; cursor: pointer; }
+.hint, .note { margin: 8px 0 0; color: var(--wm-gray); font-size: 13px; } /* design code: hint 13 */
+.note-block { margin-top: 24px; }
+.note-block p { margin: 8px 0 0; }
+.note-card { margin-top: 28px; padding: 20px; } /* step-level notes ("kind": "note"): info card, teal tint, radius 16 */
+
+.field { display: block; margin-top: 8px; }
+.field span.lbl { display: block; margin-bottom: 8px; }
+.wm-input { min-height: 52px; font-size: 16px; }
+textarea.wm-input { min-height: 112px; resize: vertical; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.choice {
+  width: 100%;
+  min-height: var(--wm-tap);
+  padding: 12px 20px;
+  border-radius: var(--wm-radius-pill); /* design code: choices are pills */
+  border: 1px solid transparent;
+  background: var(--wm-teal-tint);
+  color: var(--wm-ink);
+  font: 500 15px var(--wm-font);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.choice[aria-pressed="true"] { background: var(--wm-teal); color: var(--wm-white); }
+.choice .wm-tag { flex: 0 0 auto; }
+.choice[aria-pressed="true"] .wm-tag { background: var(--wm-white); color: var(--wm-teal-deep); }
+.wm-tag[hidden] { display: none; }
+.choice:disabled, .photo:disabled { opacity: .45; cursor: default; }
+
+.photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.photos.drawings { grid-template-columns: 1fr; }
+.photos .span2 { grid-column: 1 / -1; }
+.photo {
+  position: relative;
+  padding: 0 0 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  min-height: var(--wm-tap);
+}
+.photo img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--wm-radius-photo);
+  outline: 3px solid transparent;
+  outline-offset: 0;
+  display: block;
+  background: var(--wm-teal-mist);
+}
+.photo.drawing img { aspect-ratio: 4 / 3; object-fit: contain; background: var(--wm-white); border: 1px solid var(--wm-teal-line); }
+.photo[aria-pressed="true"] img { outline-color: var(--wm-teal); }
+.photo .name { display: block; margin-top: 8px; font-size: 14px; font-weight: 500; line-height: 1.3; }
+.photo .wm-tag { margin-top: 8px; }
+.badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--wm-teal);
+  color: var(--wm-white);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.photo[aria-pressed="true"] .badge { display: flex; }
+
+.figure { margin: 16px 0 0; }
+.figure img { width: 100%; height: auto; border-radius: var(--wm-radius-photo); display: block; }
+.figure figcaption { margin-top: 8px; color: var(--wm-gray); font-size: 13px; }
+.figure.product { display: flex; gap: 12px; align-items: center; }
+.figure.product img { width: 120px; height: 120px; object-fit: contain; background: var(--wm-white); border-radius: 16px; }
+.figure.product.wide img { width: 180px; height: auto; }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.suffix { display: flex; align-items: center; gap: 8px; }
+.suffix input { flex: 1; }
+.suffix em { font-style: normal; color: var(--wm-gray); font-size: 14px; }
+
+/* Plan viewer: the whole plan at screen width; layers switched by chips; page scroll is never blocked. */
+.planbox { margin-top: 28px; }
+.layer-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--wm-tap);
+  padding: 0 16px;
+  border-radius: var(--wm-radius-pill);
+  border: 0;
+  background: var(--wm-teal-tint);
+  color: var(--wm-ink);
+  font: 500 14px var(--wm-font);
+  cursor: pointer;
+}
+.layer-chip[aria-pressed="true"] { background: var(--wm-teal); color: var(--wm-white); }
+.layer-chip .count:empty { display: none; }
+.layer-chip .count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: var(--wm-white);
+  color: var(--wm-teal-deep);
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+.layer-chip:focus-visible { outline: 2px solid var(--wm-teal-deep); outline-offset: 2px; }
+/* A layer the client has opened gets a check; Next walks through the ones without it (engine/app.js nextUnseenLayer). */
+.layer-chip.seen::before { content: "\2713"; font-weight: 700; color: var(--wm-teal); margin-right: -2px; }
+.layer-chip.seen[aria-pressed="true"]::before { color: var(--wm-white); }
+.layer-hint { margin: 0 0 12px; }
+.bar .next-layer { flex: 1.8; }
+.plan-stage {
+  /* padding keeps 44 px tap targets at the plan edge inside the frame */
+  padding: 16px;
+  border: 1px solid var(--wm-teal-line);
+  border-radius: 16px;
+  background: var(--wm-white);
+}
+.plan-stage.is-disabled { opacity: .45; }
+.plan-inner { position: relative; }
+.plan-inner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.hot {
+  position: absolute;
+  width: var(--wm-tap);
+  height: var(--wm-tap);
+  padding: 0;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%; /* round 44 px hit area: neighbours closer than 44 px overlap less */
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.hot .dot, .hot-sample .dot {
+  position: relative;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--wm-teal);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .95);
+  color: var(--wm-teal-deep);
+  font: 700 11px/26px var(--wm-font);
+  text-align: center;
+  box-shadow: 0 0 0 3px rgba(16, 128, 120, .15);
+}
+.hot.square .dot { border-radius: 8px; }
+.hot.diamond .dot { border-radius: 12px; }
+.hot.on .dot, .hot-sample.on .dot { background: var(--wm-teal); border-color: var(--wm-teal); color: var(--wm-white); }
+/* marks: Included = dark fill + check; Additional cost = teal + plus; Pending = dashed; swap = teal + "!" */
+.hot.k-included .dot, .hot-sample.k-included .dot { background: var(--wm-teal-deep); border-color: var(--wm-teal-deep); }
+.hot.k-pending .dot, .hot-sample.k-pending .dot { background: var(--wm-teal-tint); border: 2px dashed var(--wm-teal-deep); color: var(--wm-teal-deep); }
+.hot.on .dot::after, .hot-sample.on .dot::after {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--wm-white);
+  border: 1.5px solid var(--wm-teal-deep);
+  color: var(--wm-teal-deep);
+  font: 700 10px/13px var(--wm-font);
+  text-align: center;
+  content: "\2713";
+}
+.hot.k-extra .dot::after, .hot-sample.k-extra .dot::after { content: "+"; }
+.hot.k-pending .dot::after, .hot-sample.k-pending .dot::after { content: "?"; }
+.hot.k-swap .dot::after, .hot-sample.k-swap .dot::after { content: "!"; }
+.hot:disabled { cursor: default; }
+.hot.passive { pointer-events: none; z-index: 1; }
+.hot.passive:not(.on) { visibility: hidden; }
+.hot.passive .dot, .hot-sample.passive .dot {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  box-shadow: none;
+  background: var(--wm-gray-light);
+  font-size: 0;
+}
+.hot.passive .dot::after, .hot-sample.passive .dot::after { display: none; }
+.hot:focus-visible { outline: none; }
+.hot:focus-visible .dot { outline: 3px solid var(--wm-teal-deep); outline-offset: 3px; }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 12px 0 0; font-size: 13px; color: var(--wm-gray); }
+.legend > span { display: inline-flex; align-items: center; gap: 8px; }
+.hot-sample { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; }
+.hot-sample .dot { width: 18px; height: 18px; box-shadow: none; }
+.hot-sample.passive .dot { width: 10px; height: 10px; }
+.hot-sample .dot::after { transform: scale(.8); top: -8px; right: -8px; }
+.legend-note { font-weight: 500; color: var(--wm-teal-deep); }
+.q.layer { margin-top: 20px; }
+.q.layer-off { display: none; }
+.rule-note { color: var(--wm-teal-deep); }
+
+.open { margin-top: 8px; }
+.open a, .jump {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--wm-tap);
+  margin-top: 8px;
+  padding: 8px 20px;
+  border-radius: var(--wm-radius-pill);
+  background: var(--wm-teal-mist);
+  color: var(--wm-teal-deep);
+  text-decoration: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  font: 500 15px var(--wm-font);
+  cursor: pointer;
+}
+.summary { margin-top: 24px; }
+.summary h3 { margin: 20px 0 8px; }
+.row {
+  display: grid;
+  grid-template-columns: minmax(120px, 38%) 1fr;
+  gap: 8px 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--wm-teal-line);
+  font-size: 15px;
+}
+.row .k { color: var(--wm-gray); }
+.row .v { overflow-wrap: anywhere; }
+.row .empty { color: var(--wm-gray); }
+/* Review rows: "Edit" is a quiet teal text button (44 px tap height), not a filled block. */
+.row { position: relative; padding-right: 56px; }
+.row .jump {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  width: auto;
+  margin: 0;
+  padding: 0 2px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--wm-teal);
+  font: 500 13px var(--wm-font);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.row .jump:hover { text-decoration: underline; }
+.jump span:last-child { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--wm-teal); }
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; background: var(--wm-white); }
+
+/* Finish preview: pinned under the header on the Finishes step (offset measured at run time),
+   photo left, picked names right. On Review it is a static, full-width picture. */
+.finish-preview {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px -20px 0;
+  padding: 4px 20px 8px;
+  background: #fff;
+  border-bottom: 1px solid var(--wm-teal-line);
+}
+.finish-preview canvas {
+  display: block;
+  flex: none;
+  width: 58%;
+  max-width: 240px;
+  height: auto;
+  border-radius: 12px;
+  background: var(--wm-teal-mist);
+}
+.pv-cap { min-width: 0; font-size: 13px; line-height: 1.3; color: var(--wm-gray); }
+.pv-line { margin: 0 0 4px; overflow-wrap: anywhere; }
+.pv-line b { font-weight: 500; color: var(--wm-teal-deep); }
+.pv-note { margin: 2px 0 0; font-size: 11px; letter-spacing: .02em; }
+.finish-preview.static { position: static; display: block; margin: 16px 0 0; padding: 0; border: 0; background: none; }
+.finish-preview.static canvas { width: 100%; max-width: none; border-radius: var(--wm-radius-photo); }
+.finish-preview.static .pv-cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin-top: 8px; }
+.finish-preview.static #preview-picked { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.reset { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--wm-teal-line); }
+.reset-btn { width: 100%; border-color: #CFCFCF; color: var(--wm-gray); }
+
+/* The step heading gets focus on every step change (for screen readers). No ring: the heading is not
+   something to tap, and Chrome counts focus on page load as "keyboard" focus, so a ring showed after every reload. */
+#step-title:focus, #step-title:focus-visible { outline: none; }
+
+.wm-input:focus {
+  outline: 2px solid var(--wm-teal);
+  border-color: var(--wm-teal);
+}
+.choice:focus-visible, .photo:focus-visible, .step-jump:focus-visible, .wm-btn:focus-visible, .jump:focus-visible {
+  outline: 2px solid var(--wm-teal-deep);
+  outline-offset: 2px;
+}
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: #fff;
+  border-top: 1px solid var(--wm-teal-line);
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+}
+.bar-in { display: flex; gap: 12px; max-width: 760px; margin: 0 auto; }
+.bar .wm-btn { flex: 1; min-width: 0; padding: 0 16px; }
+.bar .send-btn { flex: 1.8; }
+.wm-btn { min-height: 52px; }
+.wm-btn:disabled { opacity: .38; cursor: default; }
+.wm-chip { min-height: var(--wm-tap); }
+
+/* Bare address or broken link on the web (engine/app.js renderNoLink): how to get a personal link. */
+.nolink main { padding-bottom: 40px; }
+.nolink .top { padding-bottom: 16px; } /* logo clear space: no progress line under it here */
+.nolink-warn { margin: 20px 0 0; padding: 12px 16px; border-radius: var(--wm-radius-box); background: #F8E8E6; color: var(--wm-error); font-size: 15px; }
+.nolink-h { margin-top: 28px; }
+.nolink-p { margin: 8px 0 0; }
+.nolink-foot { margin-top: 28px; }
+
+/* Internal pages (design code, "Internal pages"): a deliberate break from the client look.
+   Gray page instead of white, a dark strip under the logo; the header with the logo stays white. */
+body.internal { background: var(--wm-internal-page); }
+.internal .app { background: var(--wm-internal-sheet); }
+.internal-strip { margin: var(--logo-h) -20px 0; padding: 12px 20px 12px; background: var(--wm-internal-strip); color: var(--wm-white); }
+.internal-strip p { margin: 0; }
+.internal-label { font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.internal-text { font-size: 15px; line-height: 1.4; }
+.internal .top { border-bottom: 0; }
+.internal .link-out { background: var(--wm-white); }
+
+/* Manager's link page (manager.html): no bottom bar, so less room below. */
+.manager main { padding-bottom: 40px; }
+.mgr-field { margin-top: 24px; }
+.mgr-field .optional { color: var(--wm-gray); font-size: 15px; }
+.field-error { margin: 8px 0 0; color: var(--wm-error); font-size: 14px; }
+.field-error[hidden], .mgr-result[hidden] { display: none; }
+.wm-input[aria-invalid="true"] { border-color: var(--wm-error); }
+.mgr-create { width: 100%; margin-top: 28px; }
+.mgr-result { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--wm-teal-line); }
+.link-out { min-height: 104px; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; word-break: break-all; background: var(--wm-teal-mist); }
+.mgr-actions { display: flex; gap: 12px; margin-top: 12px; }
+.mgr-actions .wm-btn { flex: 1; }
+.copy-status:empty { display: none; }
+.copy-status { color: var(--wm-teal-deep); font-weight: 500; }
+.mgr-privacy { margin-top: 28px; }
+.mgr-to .hint { margin: 4px 0 0; }
+
+/* Send to Wellmade (Review) and the confirmation screen. */
+.send-panel { margin: 20px 0 0; padding: 16px 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); border: 1px solid var(--wm-teal-line); font-size: 15px; line-height: 1.4; scroll-margin: calc(var(--header-h) + 12px) 0 96px; }
+.send-panel:focus { outline: none; }
+.send-panel p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.send-panel p:last-child { margin-bottom: 0; }
+.send-panel .send-title { font-weight: 500; color: var(--wm-teal-deep); display: flex; align-items: center; gap: 12px; }
+.send-panel.is-error { background: #F8E8E6; border-color: rgba(179, 38, 30, .35); }
+.send-panel.is-error .send-title { color: var(--wm-error); }
+.send-panel.is-changed { background: #FFF6E0; border-color: rgba(160, 110, 0, .35); }
+.send-panel.is-changed .send-title { color: #7A5300; }
+.send-panel .wm-btn { width: 100%; margin-top: 8px; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--wm-teal-line); border-top-color: var(--wm-teal); animation: spin .9s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.send-off { margin-top: 16px; }
+.keep-copy { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--wm-teal-line); }
+.keep-copy-btns { display: flex; gap: 12px; }
+.keep-copy-btns .wm-btn { flex: 1; min-width: 0; }
+.sent-mark { width: 56px; height: 56px; border-radius: 50%; background: var(--wm-teal); color: var(--wm-white); display: grid; place-items: center; font-size: 30px; margin: 8px 0 16px; }
+.sent-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 20px 0 0; padding: 16px 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); font-size: 15px; }
+.sent-facts dt { color: var(--wm-gray); }
+.sent-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; color: var(--wm-ink); }
+#sent-again { margin-top: 20px; color: var(--wm-ink); font-size: 15px; }
+
+#print-sheet { display: none; }
+
+@media (max-width: 420px) {
+  .pair { grid-template-columns: 1fr; }
+  .pv-cap { font-size: 12px; }
+}
+
+@media (min-width: 800px) {
+  body { padding: 24px 0; }
+  .app { min-height: calc(100vh - 48px); border-radius: 20px; }
+}
+
+@media print {
+  body { background: white; }
+  .app { display: none !important; }
+  #print-sheet { display: block !important; max-width: 760px; margin: 0 auto; color: #1d1d1d; font-family: "BDO Grotesk", Inter, "Helvetica Neue", Arial, sans-serif; }
+  #print-sheet h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+  #print-sheet h2 { font-size: 16px; margin: 20px 0 8px; page-break-after: avoid; }
+  #print-sheet .meta { color: #444; font-size: 13px; margin: 0 0 8px; }
+  #print-sheet .row { break-inside: avoid; }
+  #print-sheet img.logo { height: 22px; }
+  #print-sheet .thumbs img { width: 64px; height: 64px; }
+  #print-sheet img.preview-print { width: 100%; max-height: 260px; object-fit: contain; }
+}
+
+/* ---- v2 (Kirill's comments, 2026-11-17) ------------------------------------ */
+/* More air above the logo. */
+.top { padding-top: 24px; }
+/* Finish preview: bigger, and a tap opens it full screen (.pv-open wraps the canvas). */
+.pv-open { flex: none; width: 75%; max-width: 340px; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; }
+.finish-preview .pv-open canvas { width: 100%; max-width: none; }
+.finish-preview.static .pv-open { width: 100%; max-width: none; border-radius: var(--wm-radius-photo); }
+.pv-open:focus-visible { outline: 3px solid var(--wm-teal); outline-offset: 2px; }
+.pv-zoom { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px 16px; background: rgba(20, 24, 24, .92); color: #fff; cursor: zoom-out; }
+.pv-zoom img { display: block; width: 100%; max-width: 1100px; max-height: 70vh; object-fit: contain; border-radius: var(--wm-radius-photo); }
+.pv-zoom-cap { width: 100%; max-width: 1100px; font-size: 14px; line-height: 1.35; color: #e8e8e8; }
+.pv-zoom-cap .pv-line b { color: #fff; }
+.pv-zoom-close { background: #fff; }
+body.zoom-open { overflow: hidden; }
+/* Finish swatches smaller: three per row, square. Deck drawings stay one per row. */
+.photos:not(.drawings) { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.photos:not(.drawings) .photo img { aspect-ratio: 1 / 1; }
+.photos:not(.drawings) .photo .name { font-size: 13px; }
+.photos:not(.drawings) .badge { top: 8px; right: 8px; width: 24px; height: 24px; font-size: 14px; }
+.photos:not(.drawings) .photo { align-self: start; } /* a button centers its content: keep all swatches top-aligned when names wrap */
+
+/* v3: photo in the step header (step.heroLayout) */
+.figure.hero-top { margin: 4px 0 20px; }
+.figure.hero-mid { margin: 16px 0 8px; }
+
+/* Logo clear space in logo heights (L = logo height): one L above the logo and one L under it, to the progress line. */
+:root { --logo-h: 26px; }
+.brand img { height: var(--logo-h); }
+.top { padding-top: var(--logo-h); }
+.progress { margin-top: var(--logo-h); }
+.nolink .top { padding-bottom: var(--logo-h); }
+
+/* On scroll the logo and progress line slide away; the step buttons stay (top = minus the part above them, set by engine/app.js). */
+.top { top: calc(-1 * var(--top-hide, 0px)); }
+
+/* ---- 2.5.0 (pilot 0.3): guided flow --------------------------------------------- */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.planbox[hidden], .legend[hidden], .addon-card[hidden] { display: none; }
+
+/* The step text speaks to the client: normal ink, a little bigger than a hint. */
+.lead { margin-top: 12px; color: var(--wm-ink); font-size: 16px; }
+/* A sentence that opens the next part of a step ("Now the deck."), with a line above it. */
+.q.has-lead { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--wm-teal-line); }
+.q-lead { margin: 0 0 12px; color: var(--wm-ink); font-size: 16px; }
+
+/* Cover: the first screen. Logo, photo, greeting, two sentences, one button. No steps, no bottom bar. */
+.on-cover .top { position: static; padding-bottom: var(--logo-h); border-bottom: 0; }
+.on-cover main { padding: 0 20px 40px; }
+.cover-photo { margin: 0; }
+.cover-photo img { display: block; width: 100%; height: auto; border-radius: var(--wm-radius-photo); }
+.cover-photo figcaption { margin-top: 8px; color: var(--wm-gray); font-size: 13px; }
+.cover-hello { margin: 28px 0 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.cover .wm-h2 { margin: 8px 0 0; }
+.cover-text { margin: 16px 0 0; font-size: 16px; }
+.cover-start { width: 100%; margin-top: 28px; }
+
+/* Add-on card: one frame per add-on, so its picture, name and buttons read as one thing. */
+.addon-card { margin-top: 20px; padding: 20px; border: 1px solid var(--wm-teal-line); border-radius: var(--wm-radius-card); background: var(--wm-white); }
+.addon-head { display: flex; align-items: center; gap: 16px; }
+.addon-head img { flex: none; width: 96px; height: 96px; object-fit: contain; border-radius: 12px; background: var(--wm-white); }
+.addon-text { margin: 4px 0 0; color: var(--wm-gray); font-size: 13px; }
+.addon-card .q { margin-top: 16px; }
+.addon-card .q .choices { margin-top: 0; }
+.addon-card .planbox { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--wm-teal-line); }
+
+/* Plan: how to use it, then what is asked, then the plan. */
+.plan-how { margin: 0 0 12px; color: var(--wm-ink); font-size: 15px; }
+.plan-head { margin: 4px 0 12px; scroll-margin-top: calc(var(--header-h) + 12px); }
+.plan-head.layer-off { display: none; }
+.plan-step { margin: 0 0 4px; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.plan-head .hint { color: var(--wm-ink); font-size: 15px; }
+.list-hint { margin: 0 0 8px; }
+.q.layer .choices { margin-top: 0; }
+/* Chips are numbered steps; no check marks, no counters. */
+.layer-chip .num { width: 20px; height: 20px; border-radius: 50%; background: var(--wm-white); color: var(--wm-teal-deep); font-size: 12px; line-height: 20px; text-align: center; }
+.layer-chip .count { display: none; }
+.layer-chip.seen::before { content: none; }
+/* Only the thing being placed is on the plan; the other two are not drawn over it. */
+.hot.passive { display: none; }
+
+/* Client details on Review: fields to check, quieter than a question. */
+.details .q { margin-top: 16px; }
+.details .field-label { margin-bottom: 4px; color: var(--wm-gray); font-size: 15px; }
+
+/* Prices of extras on Review (spec.prices). */
+.price-row { padding-right: 0; }
+.price-row .v { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.price-row .price { font-weight: 500; color: var(--wm-teal-deep); white-space: nowrap; }
+.price-total { border-top: 2px solid var(--wm-teal); font-size: 16px; }
+.price-total .v { justify-content: flex-end; }
+.price-note { margin-top: 8px; }
