@@ -49,13 +49,13 @@
 
   // ---- page -------------------------------------------------------------------
   // Internal page (design code, "Internal pages"): gray page and a dark strip, so staff never confuse it with the client form.
-  document.title = "Internal · Client link · v3" + (SPEC.formName ? " · " + SPEC.formName : "");
+  document.title = "Internal · Client link · v0.3" + (SPEC.formName ? " · " + SPEC.formName : "");
   document.body.classList.add("internal");
   var top = h("header", { class: "top" }, [h("div", { class: "brand" }, [
     SPEC.brand && SPEC.brand.logo ? h("img", { src: SPEC.brand.logo, alt: SPEC.brand.logoAlt || "" }) : h("span"),
     h("p", { class: "eyebrow", text: "Manager" })
   ]), h("div", { class: "internal-strip", role: "note" }, [
-    h("p", { class: "internal-label", text: "Internal page · Wellmade staff only · Version 3" }),
+    h("p", { class: "internal-label", text: "Internal page · Wellmade staff only · Version 0.3" }),
     h("p", { class: "internal-text", text: "Do not send this page to a client. It makes the personal link you send them." })
   ])]);
   var main = h("main", { id: "main" });

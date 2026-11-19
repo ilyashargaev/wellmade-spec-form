@@ -175,6 +175,8 @@ The form shows one photo with the facade and the deck repainted in the picked st
 - minor (`1.2.0` → `1.3.0`): options, questions or steps added or removed; rules or link fields changed;
 - major (`2.0.0`): only when the engine changes the spec format (a developer does that).
 
+**While the form is a pilot (this folder, since 2026-11-19):** the number is the pilot version plus an edit counter: `0.3.1` = pilot 0.3, edit 1. Raise only the last number per batch of changes. `1.0.0` is reserved for the first pilot with real clients (Ilya's rule); the patch / minor / major rule above starts from there. The same name is used everywhere a person sees it ("Version 0.3" on the manager page), never "version 3". The web folder is still called `v3/`: that is an address, not the version name.
+
 ## 10. Publish
 
 Pilot address: https://spec.wllmd.com/ (client form) and `.../manager.html` (link page). It is served from the GitHub repository `ilyashargaev/wellmade-spec-form`, branch `main`; every commit there goes live in about a minute.
