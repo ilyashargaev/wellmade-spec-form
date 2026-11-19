@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "3.0.0",
+  "specVersion": "3.0.1",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -12,7 +12,7 @@
   "brand": {
     "logo": "images/wellmade-logo-teal-grey.png",
     "logoAlt": "Wellmade",
-    "footer": "San Leandro, CA · wllmd.com · sales@wllmd.com"
+    "footer": "San Leandro, CA · wllmd.com · sales@wllmd.com · (510) 606-1706"
   },
   "download": {
     "fileName": "presidio-xo-spec",

@@ -36,7 +36,7 @@ const J = JSON.stringify;
     if (dl[0]) {
       const j = JSON.parse(fs.readFileSync(path.join(OUT, 'dl', dl[0]), 'utf8'));
       console.log('downloaded specId/version:', j.specId, j.specVersion, 'client:', j.answers.client);
-      ok(j.specId === 'presidio-xo' && j.specVersion === '3.0.0' && j.answers.client === 'Jane Test', 'downloaded JSON: specId, specVersion, client');
+      ok(j.specId === 'presidio-xo' && j.specVersion === '3.0.1' && j.answers.client === 'Jane Test', 'downloaded JSON: specId, specVersion, client');
       ok(j.openQuestions.some(o => o.id === 'permits'), 'downloaded JSON: empty permits still listed in openQuestions');
     }
     console.log('exceptions:', J(b.exceptions()));
