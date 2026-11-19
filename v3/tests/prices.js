@@ -11,7 +11,8 @@ const ctx = { console }; vm.createContext(ctx);
 vm.runInContext('var window=globalThis;' + fs.readFileSync(path.join(PILOT, 'spec/presidio-xo.js'), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(path.join(PILOT, 'engine/model.js'), 'utf8'), ctx);
 const S = ctx.SPEC_DATA, M = ctx.SpecEngine.createModel(S);
-const U = S.prices.unit, tag = n => '+' + n + ' ' + U;
+const U = S.prices.unit, SYM = S.prices.symbol || '';
+const money = n => SYM ? SYM + n.toLocaleString('en-US') : n + ' ' + U, tag = n => '+' + money(n);
 const opt = (q, id) => S.steps.flatMap(s => s.items || []).find(i => i.id === q).options.find(o => o.id === id);
 const rule = (type, q) => S.rules.find(r => r.type === type && r.question === q);
 const DECK = opt('deckConfig', 'standard').price, MAN = opt('skylightType', 'manual').price, SOL = opt('skylightType', 'solar').price;
@@ -21,7 +22,21 @@ ok(typeof U === 'string' && U && [DECK, MAN, SOL, EXT, INT].every(n => typeof n 
 
 let a = M.defaultAnswers(), p = M.pricing(a);
 ok(p.enabled && p.unit === U && p.items.length === 0 && p.total === 0, 'new form: prices on, nothing priced, total 0');
-ok(!!p.note, 'the placeholder note is set');
+ok(!!p.note, 'the note under the prices is set');
+// 0.3.3: real list prices in dollars (Ian's example quote of 2026-11-19)
+ok(SYM === '$' && tag(6900) === '+$6,900' && money(11650) === '$11,650', 'dollars with a thousands comma: ' + tag(6900) + ', ' + money(11650));
+ok(J([DECK, MAN, SOL, EXT, INT]) === J([6900, 4200, 4750, 500, 400]), 'list prices: corner deck, manual and solar skylight, extra exterior and interior outlet');
+ok(M.optionState('heatpump', 'heat-pump', a).tag === '+$5,600' && M.optionState('heatpump', 'no-heat-pump', a).tag === '', 'heat pump shows its price, NO heat pump has no tag');
+ok(M.optionState('heater', 'heater', a).tag === '+$1,200' && M.optionState('heater', 'no-heater', a).tag === '', 'wall heater shows its price, NO heater has no tag');
+ok(M.optionState('connection', 'plug-in', a).tag === 'Included' && M.optionState('connection', 'hardline', a).tag === 'Custom quote' && M.optionState('connection', 'ethernet', a).tag === '+$1,350' && M.optionState('connection', 'third-party', a).tag === '', 'connection tags: plug-in included, hardline custom quote, Ethernet priced');
+{
+  let x = M.toggle(M.toggle(M.toggle(a, 'heatpump', 'heat-pump'), 'heater', 'heater'), 'connection', 'hardline');
+  ok(M.pricing(x).total === 5600 + 1200, 'heat pump + heater: 6,800; hardline (custom quote) is not in the total');
+  x = M.toggle(x, 'connection', 'ethernet');
+  ok(M.pricing(x).total === 5600 + 1200 + 1350 && M.pricing(x).totalText === '$8,150', 'Ethernet adds 1,350: ' + M.pricing(x).totalText);
+  x = M.toggle(M.toggle(x, 'heatpump', 'no-heat-pump'), 'heater', 'no-heater');
+  ok(M.pricing(x).total === 1350, 'NO heat pump and NO heater take their prices away');
+}
 ok(M.optionState('deckConfig', 'standard', a).tag === tag(DECK), 'standard deck shows its price as the tag: ' + M.optionState('deckConfig', 'standard', a).tag);
 ok(M.optionState('deckConfig', 'custom', a).tag === 'Priced by size' && M.optionState('deckConfig', 'step', a).tag === '', 'custom deck: "Priced by size"; step deck: no tag');
 ok(M.optionState('skylightType', 'manual', a).tag === tag(MAN) && M.optionState('skylightType', 'solar', a).tag === tag(SOL) && M.optionState('skylightType', 'none', a).tag === '', 'skylight tags: manual and solar priced, NO skylight without a tag');
@@ -51,7 +66,7 @@ a = M.toggle(a, 'exterior', 'back-right');
 ok(!M.pricing(a).items.some(x => x.question === 'interior'), 'three base interior outlets: not priced');
 a = M.toggle(a, 'interior', 'left-upper'); p = M.pricing(a);
 ok(M.dynamicTags(M.question('interior'), a)['left-upper'] === tag(INT) && p.items.filter(x => x.question === 'interior').length === 1, 'fourth interior outlet shows its price and is the only priced one');
-ok(p.total === DECK + SOL + EXT + INT && p.totalText === (DECK + SOL + EXT + INT) + ' ' + U, 'total: deck + solar + one exterior + one interior = ' + p.totalText);
+ok(p.total === DECK + SOL + EXT + INT && p.totalText === money(DECK + SOL + EXT + INT),'total: deck + solar + one exterior + one interior = ' + p.totalText);
 let sw = M.toggle(a, 'interior', 'back-left');
 ok(M.dynamicTags(M.question('interior'), sw)['left-upper'] === 'Confirm in Comments' && !M.pricing(sw).items.some(x => x.question === 'interior'), 'moved interior outlet (still three): "Confirm in Comments", not priced');
 const TOTAL = DECK + SOL + EXT + INT;
@@ -88,12 +103,12 @@ const TOTAL = DECK + SOL + EXT + INT;
     await b.ev('T.go("review")'); await sleep(300);
     const rev = await b.ev('({rows: [...document.querySelectorAll("main .price-row:not(.price-total)")].map(r=>r.querySelector(".k").textContent+" / "+r.querySelector(".v").textContent), sum: (document.querySelector("main .price-sum")||{}).textContent, w: T.overflow()})');
     console.log('review prices:', J(rev));
-    ok(rev.rows.length === 4 && rev.sum === TOTAL + ' ' + U, 'Review: four priced rows and the total ' + TOTAL + ' ' + U);
+    ok(rev.rows.length === 4 && rev.sum === money(TOTAL), 'Review: four priced rows and the total ' + money(TOTAL));
     ok(rev.w === 390, 'Review: no horizontal scroll at 390 px');
 
     await b.ev('window.dispatchEvent(new Event("beforeprint"));true');
     const pr = await b.ev('({rows: document.querySelectorAll("#print-sheet .price-row:not(.price-total)").length, sum: (document.querySelector("#print-sheet .price-sum")||{}).textContent, note: !!document.querySelector("#print-sheet .price-note")})');
-    ok(pr.rows === 4 && pr.sum === TOTAL + ' ' + U && pr.note, 'print sheet: the same four rows, total and note: ' + J(pr));
+    ok(pr.rows === 4 && pr.sum === money(TOTAL) && pr.note, 'print sheet: the same four rows, total and note: ' + J(pr));
 
     await b.ev('document.querySelector("[data-action=download]").click();true'); await sleep(1500);
     const dir = path.join(OUT, 'dl-prices'), dl = fs.existsSync(dir) ? fs.readdirSync(dir) : [];

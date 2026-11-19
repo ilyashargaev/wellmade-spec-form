@@ -10,7 +10,7 @@ let a=M.defaultAnswers();
 ok(J(a.interior)===J(["back-left","back-right","right-lower"]),'interior base preselected');
 ok(J(M.dynamicTags(M.question('interior'),a))===J({"back-left":"Included","back-right":"Included","right-lower":"Included"}),'base tags');
 a=M.toggle(a,'interior','left-upper');
-ok(M.dynamicTags(M.question('interior'),a)['left-upper']==='+3 magic beans','4th interior shows its price');
+ok(M.dynamicTags(M.question('interior'),a)['left-upper']==='+$400','4th interior shows its price');
 a=M.toggle(a,'interior','back-left');
 ok(M.dynamicTags(M.question('interior'),a)['left-upper']==='Confirm in Comments','swap = Confirm in Comments');
 a=M.toggle(a,'permits','building'); a=M.toggle(a,'permits','electrical');
@@ -23,7 +23,7 @@ a=M.toggle(a,'exterior','back-left');
 ok(M.dynamicTags(M.question('exterior'),a)['back-left']==='Depends on breaker box','pending before breaker (2.5.0 text: Depends on breaker box)');
 a=M.toggle(a,'breaker','right-lower');
 let t=M.dynamicTags(M.question('exterior'),a);
-ok(t['right-lower']==='Included' && t['back-left']==='+3 magic beans','included follows breaker');
+ok(t['right-lower']==='Included' && t['back-left']==='+$500','included follows breaker');
 ok(M.optionState('exterior','right-lower',a).locked,'included locked');
 let b=M.toggle(a,'exterior','right-lower'); ok(J(b.exterior)===J(a.exterior),'locked toggle no-op');
 a=M.toggle(a,'breaker','back-right'); ok(a.breaker==='back-right','one breaker only (replace)');
@@ -68,7 +68,7 @@ ok(J(ps.layers.map(l=>[l.id,l.option,l.color]))===J([['facade','stone-gray','#9c
 ps=M.previewState(M.toggle(M.toggle(M.defaultAnswers(),'stain','natural-pine'),'decking','custom'));
 ok(ps.picked && ps.layers.every(l=>l.color===null),'Natural Pine and custom decking keep the photo (color null)');
 ok(!M.previewState(M.defaultAnswers()).picked,'nothing picked = empty preview');
-ok(J(M.tagInfo(M.question('exterior'),M.toggle(M.toggle(M.defaultAnswers(),'breaker','back-left'),'exterior','right-upper')))===J({'back-left':{text:'Included',kind:'included'},'right-upper':{text:'+3 magic beans',kind:'extra'}}),'tag kinds for plan marks');
+ok(J(M.tagInfo(M.question('exterior'),M.toggle(M.toggle(M.defaultAnswers(),'breaker','back-left'),'exterior','right-upper')))===J({'back-left':{text:'Included',kind:'included'},'right-upper':{text:'+$500',kind:'extra'}}),'tag kinds for plan marks');
 ok(J(M.tagLegend('exterior').map(t=>t.kind))===J(['included','extra','pending']) && M.tagLegend('breaker').length===0,'tag legend from rules');
 ok(M.optionState('interior','back-left',M.defaultAnswers()).kind==='included','base interior outlet kind = included');
 // ---- client link (Phase 3) ----

@@ -48,10 +48,15 @@
     });
 
     // ---- prices ---------------------------------------------------------------
-    // spec.prices = {unit, note}. An option may carry "price"; an "includedBy" / "baseIncluded" rule may
+    // spec.prices = {unit, symbol, note}. An option may carry "price"; an "includedBy" / "baseIncluded" rule may
     // carry "extraPrice" (the price of each option beyond the included ones). A price is shown as the tag.
+    // With a symbol the price reads "$6,900"; without one, "40 <unit>".
     var PRICES = spec.prices || null;
-    function priceText(n) { return n + (PRICES && PRICES.unit ? " " + PRICES.unit : ""); }
+    function money(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+    function priceText(n) {
+      if (PRICES && PRICES.symbol) return PRICES.symbol + money(n);
+      return n + (PRICES && PRICES.unit ? " " + PRICES.unit : "");
+    }
     function priceTag(n) { return "+" + priceText(n); }
     function hasPrice(obj, key) { return !!obj && typeof obj[key] === "number"; }
     function extraText(rule) { return hasPrice(rule, "extraPrice") ? priceTag(rule.extraPrice) : rule.extraTag; }

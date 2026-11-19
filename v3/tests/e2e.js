@@ -79,7 +79,7 @@ async function run390() {
     await b.ev('T.go("electrical")'); await sleep(300); await b.ev(HELP);
     await b.ev('T.click("connection","plug-in");T.click("connection","ethernet");T.click("connection","hardline")');
     let v = await b.ev('T.on("connection")');
-    ok(J(v) === '["hardline","ethernet"]', 'plug-in/hardline exclusive, Ethernet kept: ' + J(v));
+    ok(J(v) === '["hardline:Custom quote","ethernet:+$1,350"]', 'plug-in/hardline exclusive, Ethernet kept; both show their tags: ' + J(v));
     const chips = await b.ev('[...document.querySelectorAll(".layer-chip")].map(c=>c.children[0].className+":"+c.children[0].textContent+" "+c.children[1].textContent+"|"+c.getAttribute("aria-pressed"))');
     ok(J(chips) === J(['num:1 Breaker box|true', 'num:2 Exterior outlets|false', 'num:3 Interior outlets|false']), 'one chip per plan question, numbered 1-3, first active: ' + J(chips));
     const geo = await b.ev('(()=>{const img=document.querySelector("#plan-electrical .plan-inner img").getBoundingClientRect(); const act=[...document.querySelectorAll("#plan-electrical .hot:not(.passive)")].map(e=>e.getBoundingClientRect()); let min=1e9; for(let i=0;i<act.length;i++)for(let j=i+1;j<act.length;j++){const a=act[i],c=act[j];min=Math.min(min,Math.hypot(a.x-c.x,a.y-c.y));} return {imgW:Math.round(img.width), imgL:Math.round(img.left), imgR:Math.round(img.right), n:act.length, minW:Math.min(...act.map(r=>r.width)), minH:Math.min(...act.map(r=>r.height)), minGap:Math.round(min)};})()');
@@ -111,11 +111,11 @@ async function run390() {
     ok(J(await b.ev('T.on("breaker")')) === '["right-lower"]', 'breaker set from the plan hotspot');
     await b.ev('T.layer("exterior")');
     v = await b.ev('T.on("exterior")');
-    ok(J(v) === '["back-left:+3 magic beans","right-lower:Included"]', 'included exterior outlet follows the breaker: ' + J(v));
+    ok(J(v) === '["back-left:+$500","right-lower:Included"]', 'included exterior outlet follows the breaker: ' + J(v));
     ok(J(await b.ev('T.marks("exterior")')) === '["back-left:extra","right-lower:included"]', 'plan marks: included + extra');
-    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+3 magic beans each'] }), 'legend: Included + the price of an extra outlet, nothing else');
+    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+$500 each'] }), 'legend: Included + the price of an extra outlet, nothing else');
     await b.ev('T.click("exterior","right-lower",true)');
-    ok(J(await b.ev('T.on("exterior")')) === '["back-left:+3 magic beans","right-lower:Included"]', 'included outlet cannot be removed (plan tap)');
+    ok(J(await b.ev('T.on("exterior")')) === '["back-left:+$500","right-lower:Included"]', 'included outlet cannot be removed (plan tap)');
     ok(await b.ev('document.querySelector(".layer-chip[data-qid=exterior] .count").textContent') === '2', 'chip count still kept up to date (2 exterior outlets)');
     ok(await b.ev('getComputedStyle(document.querySelector(".layer-chip[data-qid=exterior] .count")).display') === 'none', 'chip count badge hidden by CSS (2.5.0)');
     await b.ev('T.scrollTo("#plan-electrical")'); await sleep(200);
@@ -136,9 +136,9 @@ async function run390() {
     ok(J(v) === '["back-left:Included","back-right:Included","right-lower:Included"]', 'interior base outlets pre-selected and tagged: ' + J(v));
     ok(J(await b.ev('T.marks("interior")')) === '["back-left:included","back-right:included","right-lower:included"]', 'plan marks: 3 included');
     await b.ev('T.click("interior","left-upper",true)');
-    ok((await b.ev('T.on("interior")')).includes('left-upper:+3 magic beans') && (await b.ev('T.marks("interior")')).includes('left-upper:extra'), '4th interior outlet tagged with its price, plan mark extra');
+    ok((await b.ev('T.on("interior")')).includes('left-upper:+$400') && (await b.ev('T.marks("interior")')).includes('left-upper:extra'), '4th interior outlet tagged with its price, plan mark extra');
     ok(await b.ev('!document.getElementById("count-interior")'), 'no interior count line (showCount removed in 2.5.0)');
-    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+3 magic beans each'] }), 'legend: Included + the price of an extra outlet only');
+    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+$400 each'] }), 'legend: Included + the price of an extra outlet only');
     await b.ev('T.scrollTo("#plan-electrical")'); await sleep(200);
     await b.shot(path.join(SHOTS, '390-electrical-3-interior.png'));
     await b.ev('T.click("interior","back-right")');
@@ -240,7 +240,7 @@ async function run390() {
     ok(await b.ev('document.getElementById("f-dimA").value') === '14', 'reload keeps A');
     await b.ev('T.go("electrical")'); await sleep(300); await b.ev(HELP);
     ok(J(await b.ev('T.on("exterior")')) === '["back-left:Included"]', 'reload keeps breaker and exterior');
-    ok(J(await b.ev('T.on("connection")')) === '["hardline","ethernet"]', 'reload keeps connection');
+    ok(J(await b.ev('T.on("connection")')) === '["hardline:Custom quote","ethernet:+$1,350"]', 'reload keeps connection');
     ok((await b.ev('T.on("interior")')).length === 3, 'reload keeps interior');
     await b.ev('T.go("finishes")'); await sleep(300); await b.ev(HELP);
     ok(/Weathered Brown/.test(await b.ev('document.getElementById("preview-picked").textContent')), 'reload keeps finishes and preview');

@@ -175,6 +175,8 @@ The form shows one photo with the facade and the deck repainted in the picked st
 - minor (`1.2.0` → `1.3.0`): options, questions or steps added or removed; rules or link fields changed;
 - major (`2.0.0`): only when the engine changes the spec format (a developer does that).
 
+**Added in 0.3.2: contact your manager on the cover.** `cover.contact` = `{ "text": ..., "textNamed": "... your manager, {manager}.", "email": ..., "phone": ..., "bookLabel": "Book a call" }`. `textNamed` is used when the personal link carries the manager's name; `email` and `phone` are the company ones, shown when the link has no manager. `cover.invite` is the one line above the start button. The manager's name, email and booking link are typed on the manager page (optional) and travel in the link as `mgr`, `mgremail`, `book`; these three names, like `id` and `to`, cannot be used as `link.fields` params.
+
 **While the form is a pilot (this folder, since 2026-11-19):** the number is the pilot version plus an edit counter: `0.3.1` = pilot 0.3, edit 1. Raise only the last number per batch of changes. `1.0.0` is reserved for the first pilot with real clients (Ilya's rule); the patch / minor / major rule above starts from there. The same name is used everywhere a person sees it ("Version 0.3" on the manager page), never "version 3". The web folder is still called `v3/`: that is an address, not the version name.
 
 ## 10. Publish

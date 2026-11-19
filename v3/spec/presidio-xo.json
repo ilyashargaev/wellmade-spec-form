@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "0.3.2",
+  "specVersion": "0.3.3",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -71,8 +71,9 @@
   },
 
   "prices": {
-    "unit": "magic beans",
-    "note": "Prices here are placeholders in a made-up currency. Real prices in dollars come later."
+    "unit": "USD",
+    "symbol": "$",
+    "note": "List prices of the extras you picked, installed. The price of the studio itself is in your quote. Your manager confirms the final total."
   },
 
   "cover": {
@@ -140,7 +141,7 @@
           "lead": "Then the shape of the deck.",
           "options": [
             { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
-            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 40 },
+            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 6900 },
             { "id": "custom", "label": "Custom corner deck", "image": "images/deck-custom.png", "tag": "Priced by size" }
           ] },
         { "id": "dimA", "kind": "text", "label": "A dimension", "suffix": "feet",
@@ -165,14 +166,14 @@
           "image": "images/heat-pump.jpg", "alt": "Wall heat pump." },
         { "id": "heatpump", "kind": "single", "label": "Heat pump AC unit", "card": "heatPumpCard", "hideLabel": true,
           "options": [
-            { "id": "heat-pump", "label": "Heat pump unit" },
+            { "id": "heat-pump", "label": "Heat pump unit", "price": 5600 },
             { "id": "no-heat-pump", "label": "NO heat pump" }
           ] },
         { "id": "heaterCard", "kind": "card", "title": "Wall mounted heater",
           "image": "images/heater.jpg", "alt": "White wall heater." },
         { "id": "heater", "kind": "single", "label": "Wall mounted heater", "card": "heaterCard", "hideLabel": true,
           "options": [
-            { "id": "heater", "label": "Wall Heater" },
+            { "id": "heater", "label": "Wall Heater", "price": 1200 },
             { "id": "no-heater", "label": "NO heater" }
           ] },
         { "id": "skylightCard", "kind": "card", "title": "Skylight",
@@ -180,8 +181,8 @@
           "image": "images/skylight-unit.jpg", "alt": "Operable skylight, shown open." },
         { "id": "skylightType", "kind": "single", "label": "Skylight", "card": "skylightCard", "hideLabel": true,
           "options": [
-            { "id": "manual", "label": "Manual operable skylight", "price": 12 },
-            { "id": "solar", "label": "Solar-powered operable skylight", "price": 15 },
+            { "id": "manual", "label": "Manual operable skylight", "price": 4200 },
+            { "id": "solar", "label": "Solar-powered operable skylight", "price": 4750 },
             { "id": "none", "label": "NO skylight" }
           ] },
         { "id": "skylightLoc", "kind": "plan-single", "label": "Skylight location", "card": "skylightCard",
@@ -201,11 +202,11 @@
       "intro": "By default Wellmade installs a 125 amp, 2 circuit breaker box 5 ft above the ground, one exterior outlet right under it, and 3 interior outlets 18\" above the floor. Below you choose the connection and where everything goes.",
       "items": [
         { "id": "connection", "kind": "multi", "label": "Connection",
-          "hint": "Choose plug-in or hardline. Add Ethernet or third-party work if you need them.",
+          "hint": "Choose plug-in or hardline. Add Ethernet or third-party work if you need them. The Ethernet price applies together with a hardline connection.",
           "options": [
-            { "id": "plug-in", "label": "Plug-in electrical connection" },
-            { "id": "hardline", "label": "Hardline connection from main panel" },
-            { "id": "ethernet", "label": "Ethernet connection" },
+            { "id": "plug-in", "label": "Plug-in electrical connection", "tag": "Included" },
+            { "id": "hardline", "label": "Hardline connection from main panel", "tag": "Custom quote" },
+            { "id": "ethernet", "label": "Ethernet connection", "price": 1350 },
             { "id": "third-party", "label": "Electrical work completed by a third-party contractor" }
           ] },
         { "id": "breaker", "kind": "plan-single", "label": "Breaker box location",
@@ -278,10 +279,10 @@
       "why": "Plug-in and hardline are two ways of the same connection; Ethernet and third-party stay independent." },
     { "type": "includedBy", "question": "exterior", "source": "breaker",
       "map": { "back-left": "back-left", "back-right": "back-right", "right-upper": "right-upper", "right-lower": "right-lower" },
-      "includedTag": "Included", "extraTag": "Extra charge", "extraPrice": 3, "pendingTag": "Depends on breaker box",
+      "includedTag": "Included", "extraTag": "Extra charge", "extraPrice": 500, "pendingTag": "Depends on breaker box",
       "why": "PDF page 4: one exterior outlet right under the breaker box is included; more than one at extra charge." },
     { "type": "baseIncluded", "question": "interior", "options": ["back-left", "back-right", "right-lower"],
-      "includedTag": "Included", "extraTag": "Additional charge", "extraPrice": 3, "swapTag": "Confirm in Comments",
+      "includedTag": "Included", "extraTag": "Additional charge", "extraPrice": 400, "swapTag": "Confirm in Comments",
       "why": "PDF page 4: the 3 outlets joined to the 'Interior Outlets' label come with the base model; more at additional charge." },
     { "type": "disables", "when": { "question": "skylightType", "isNot": ["manual", "solar"] }, "targets": ["skylightLoc"],
       "hide": true, "why": "The location is asked only after a skylight is chosen." },

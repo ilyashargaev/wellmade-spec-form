@@ -213,8 +213,9 @@ class Checker:
             if not isinstance(prices, dict):
                 self.err("prices", 'must be an object like {"unit": "USD", "note": "..."}')
             else:
-                self.keys(prices, {"unit", "note"}, "prices")
+                self.keys(prices, {"unit", "symbol", "note"}, "prices")
                 self.need_str(prices, "unit", "prices")
+                self.need_str(prices, "symbol", "prices", required=False)
                 self.need_str(prices, "note", "prices", required=False)
 
         cover = spec.get("cover")
