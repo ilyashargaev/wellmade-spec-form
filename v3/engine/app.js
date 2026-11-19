@@ -812,6 +812,25 @@
     return ok ? out : "";
   }
 
+  // "Contact your manager" on the cover (spec.cover.contact). The manager's name, email and
+  // booking link come from the personal link; without them the company email and phone of the
+  // spec are shown. Email first, then "Book a call" when the link has one, else the phone.
+  function coverContact(cc) {
+    if (!cc) return null;
+    var m = (LINK && LINK.manager) || {};
+    var email = m.email || cc.email || "";
+    var text = m.name && cc.textNamed ? String(cc.textNamed).replace(/\{manager\}/g, m.name) : cc.text;
+    if (!text) return null;
+    var ways = [];
+    if (email) ways.push(h("a", { class: "cover-way", href: "mailto:" + email, text: email }));
+    if (m.book) ways.push(h("a", { class: "cover-way cover-book", href: m.book, target: "_blank", rel: "noopener noreferrer", text: cc.bookLabel || "Book a call" }));
+    else if (cc.phone) ways.push(h("a", { class: "cover-way", href: "tel:" + String(cc.phone).replace(/[^0-9+]/g, ""), text: cc.phone }));
+    return h("section", { class: "cover-contact", "aria-label": "Contact your manager" }, [
+      h("p", { class: "cover-contact-text", text: text }),
+      ways.length ? h("p", { class: "cover-ways" }, ways) : null
+    ]);
+  }
+
   // The cover (spec.cover): the first screen of a new form. No step buttons, one button to begin.
   function renderCover() {
     var c = SPEC.cover;
@@ -834,6 +853,9 @@
     if (hello) main.appendChild(h("p", { class: "cover-hello", text: hello }));
     main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: c.title }));
     (c.text || []).forEach(function (t) { main.appendChild(h("p", { class: "cover-text", text: t })); });
+    var contact = coverContact(c.contact);
+    if (contact) main.appendChild(contact);
+    if (c.invite) main.appendChild(h("p", { class: "cover-invite", text: c.invite }));
     main.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary cover-start", "data-action": "start", text: c.button || "Start" }));
     app.appendChild(main);
     measure();

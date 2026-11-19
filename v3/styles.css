@@ -562,7 +562,12 @@ body.zoom-open { overflow: hidden; }
 .cover-hello { margin: 28px 0 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
 .cover .wm-h2 { margin: 8px 0 0; }
 .cover-text { margin: 16px 0 0; font-size: 16px; }
-.cover-start { width: 100%; margin-top: 28px; }
+.cover-contact { margin-top: 28px; padding: 16px 20px; border: 1px solid var(--wm-teal-line); border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); }
+.cover-contact-text { margin: 0; font-size: 15px; }
+.cover-ways { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 12px 0 0; }
+.cover-way { display: inline-flex; align-items: center; min-height: 44px; color: var(--wm-teal); font-size: 15px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.cover-invite { margin: 28px 0 0; font-size: 16px; font-weight: 500; }
+.cover-start { width: 100%; margin-top: 16px; }
 
 /* Add-on card: one frame per add-on, so its picture, name and buttons read as one thing. */
 .addon-card { margin-top: 20px; padding: 20px; border: 1px solid var(--wm-teal-line); border-radius: var(--wm-radius-card); background: var(--wm-white); }

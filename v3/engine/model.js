@@ -489,15 +489,43 @@
 
   // "#id=...&name=...&to=..." from a link id, {param: text} and an optional list of result
   // recipients (emails). Empty values are left out.
-  function linkHash(spec, id, byParam, recipients) {
+  function linkHash(spec, id, byParam, recipients, manager) {
     var parts = ["id=" + encodePart(id)];
     linkFields(spec).forEach(function (f) {
       var v = cleanLinkValue(byParam && byParam[f.param]);
       if (v) parts.push(encodePart(f.param) + "=" + encodePart(v));
     });
+    var m = cleanManager(manager);
+    Object.keys(LINK_MANAGER_PARAMS).forEach(function (k) {
+      if (m[k]) parts.push(LINK_MANAGER_PARAMS[k] + "=" + encodePart(m[k]));
+    });
     var to = (recipients || []).filter(Boolean).join(",");
     if (to) parts.push(LINK_TO_PARAM + "=" + encodePart(to));
     return "#" + parts.join("&");
+  }
+
+  // ---- the client's manager (shown on the cover: "contact your manager") --------
+  // The link may carry the manager's name, email and a link to book a call. Anyone can edit a
+  // link, so each is checked again when read: the email must look like one, the booking link
+  // must be a plain https address. Anything else is dropped, never shown or opened.
+  var LINK_MANAGER_PARAMS = { name: "mgr", email: "mgremail", book: "book" };
+
+  function bookUrl(text) {
+    var s = cleanLinkValue(text);
+    if (!/^https:\/\/[^\s"'<>\\]+$/i.test(s)) return "";
+    if (typeof URL === "undefined") return s;
+    try { var u = new URL(s); return u.protocol === "https:" && u.hostname.indexOf(".") > 0 && !u.username && !u.password ? u.href : ""; }
+    catch (err) { return ""; }
+  }
+
+  function cleanManager(m) {
+    m = m || {};
+    var email = cleanLinkValue(m.email).toLowerCase();
+    return {
+      name: cleanLinkValue(m.name).slice(0, 80),
+      email: EMAIL_RE.test(email) && email.length <= 254 ? email : "",
+      book: bookUrl(m.book)
+    };
   }
 
   // ---- result recipients ("Send results to") -----------------------------------
@@ -551,13 +579,15 @@
     });
     // Recipients are passed on as the link has them (cleaned, capped); the receiver decides.
     var recipients = LINK_TO_PARAM in p ? parseRecipients(String(p[LINK_TO_PARAM]).slice(0, 3000)).slice(0, RECIPIENTS_MAX * 2) : [];
-    return { id: p.id, values: values, recipients: recipients };
+    var manager = cleanManager({ name: p[LINK_MANAGER_PARAMS.name], email: p[LINK_MANAGER_PARAMS.email], book: p[LINK_MANAGER_PARAMS.book] });
+    return { id: p.id, values: values, recipients: recipients, manager: manager };
   }
 
   global.SpecEngine = {
     createModel: createModel, isQuestionKind: isQuestionKind,
     linkFields: linkFields, linkHash: linkHash, readLink: readLink, LINK_ID_RE: LINK_ID_RE,
     LINK_TO_PARAM: LINK_TO_PARAM, RECIPIENTS_MAX: RECIPIENTS_MAX,
-    parseRecipients: parseRecipients, checkRecipients: checkRecipients
+    parseRecipients: parseRecipients, checkRecipients: checkRecipients,
+    LINK_MANAGER_PARAMS: LINK_MANAGER_PARAMS, cleanManager: cleanManager, bookUrl: bookUrl
   };
 })(typeof globalThis !== "undefined" ? globalThis : this);

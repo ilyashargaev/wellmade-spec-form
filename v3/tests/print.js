@@ -5,6 +5,7 @@ const path = require('path'), fs = require('fs');
 const PILOT = process.argv[2], OUT = process.argv[3];
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
 const J = JSON.stringify;
+const S_VERSION = JSON.parse(fs.readFileSync(path.join(PILOT, 'spec/presidio-xo.json'), 'utf8')).specVersion;
 (async () => {
   const b = await launch(path.join(OUT, 'profile2'), 9334);
   try {
@@ -36,7 +37,7 @@ const J = JSON.stringify;
     if (dl[0]) {
       const j = JSON.parse(fs.readFileSync(path.join(OUT, 'dl', dl[0]), 'utf8'));
       console.log('downloaded specId/version:', j.specId, j.specVersion, 'client:', j.answers.client);
-      ok(j.specId === 'presidio-xo' && j.specVersion === '0.3.1' && j.answers.client === 'Jane Test', 'downloaded JSON: specId, specVersion, client');
+      ok(j.specId === 'presidio-xo' && j.specVersion === S_VERSION && j.answers.client === 'Jane Test', 'downloaded JSON: specId, specVersion, client');
       ok(j.openQuestions.some(o => o.id === 'permits'), 'downloaded JSON: empty permits still listed in openQuestions');
     }
     console.log('exceptions:', J(b.exceptions()));

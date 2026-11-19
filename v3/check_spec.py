@@ -38,9 +38,11 @@ FIGURE_LAYOUTS = {"product", "product wide"}
 
 TOP_KEYS = {"specId", "specVersion", "formName", "title", "pageTitle", "model", "modelNote",
             "sources", "brand", "download", "link", "plans", "preview", "cover", "prices", "steps", "rules"}
-COVER_KEYS = {"image", "alt", "caption", "hello", "title", "text", "button"}
+COVER_KEYS = {"image", "alt", "caption", "hello", "title", "text", "contact", "invite", "button"}
+COVER_CONTACT_KEYS = {"text", "textNamed", "email", "phone", "bookLabel"}
 LINK_PARAM_RE = re.compile(r"^[a-z][a-z0-9]*$")
-LINK_RESERVED = {"id", "to"}  # the link id travels as "id", the result recipients as "to"
+# the link id travels as "id", the result recipients as "to", the manager's name, email and booking link as "mgr", "mgremail", "book"
+LINK_RESERVED = {"id", "to", "mgr", "mgremail", "book"}
 STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "heroLayout", "items",
              "detailsTitle", "detailsHint"}
 # lead = a sentence before the question; ask = the heading shown instead of the label;
@@ -222,8 +224,19 @@ class Checker:
             else:
                 self.keys(cover, COVER_KEYS, "cover")
                 self.need_str(cover, "title", "cover")
-                for k in ("alt", "caption", "hello", "button"):
+                for k in ("alt", "caption", "hello", "button", "invite"):
                     self.need_str(cover, k, "cover", required=False)
+                contact = cover.get("contact")
+                if contact is not None:
+                    if not isinstance(contact, dict):
+                        self.err("cover.contact", "must be an object")
+                    else:
+                        self.keys(contact, COVER_CONTACT_KEYS, "cover.contact")
+                        self.need_str(contact, "text", "cover.contact")
+                        for k in ("textNamed", "email", "phone", "bookLabel"):
+                            self.need_str(contact, k, "cover.contact", required=False)
+                        if "textNamed" in contact and "{manager}" not in str(contact["textNamed"]):
+                            self.err("cover.contact", '"textNamed" must contain {manager} (the place of the manager\'s name)')
                 if "image" in cover:
                     self.image(cover["image"], "cover")
                     self.need_str(cover, "alt", "cover")

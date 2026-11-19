@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "0.3.1",
+  "specVersion": "0.3.2",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -85,6 +85,14 @@
       "You received this form to choose the details of your future studio.",
       "We order materials and build from your answers, so please make sure they are what you really want."
     ],
+    "contact": {
+      "text": "Any question or doubt along the way? You are always welcome to contact your Wellmade manager.",
+      "textNamed": "Any question or doubt along the way? You are always welcome to contact your manager, {manager}.",
+      "email": "sales@wllmd.com",
+      "phone": "(510) 606-1706",
+      "bookLabel": "Book a call"
+    },
+    "invite": "Let's go through it together, one step at a time.",
     "button": "Let's start"
   },
 

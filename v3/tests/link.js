@@ -67,7 +67,7 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
     await b.nav(MANAGER); await b.ev(MH);
     ok(await b.ev('document.documentElement.scrollWidth') <= 390, 'manager page: no horizontal overflow at 390');
     const labels = await b.ev('[...document.querySelectorAll(".mgr-field label")].map(l=>l.textContent)');
-    ok(J(labels) === J(['Client name', 'Address', 'Phone (optional)', 'Send results to']), 'manager fields come from spec.link, then Send results to: ' + J(labels));
+    ok(J(labels) === J(['Client name', 'Address', 'Phone (optional)', 'Manager name (optional)', 'Manager email (optional)', 'Link to book a call (optional)', 'Send results to']), 'manager fields come from spec.link, then the manager contact, then Send results to: ' + J(labels));
     ok(await b.ev('document.getElementById("m-phone").type') === 'tel', 'phone input is type tel (from the question inputmode)');
     ok(await b.ev('document.getElementById("link-result").hidden'), 'no link shown before Create');
     await fullShot(b, path.join(SHOTS, '390-manager-empty.png'));

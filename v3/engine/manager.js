@@ -89,6 +89,30 @@
       err
     ]));
   });
+  // The client's manager: shown on the first screen of the form ("contact your manager"). Optional;
+  // without them the form shows the company email and phone. Not spec fields: they are not answers.
+  var MGR = [
+    { key: "name", param: "mgr-name", label: "Manager name", type: "text", hint: "The client sees it on the first screen: “contact your manager, …”." },
+    { key: "email", param: "mgr-email", label: "Manager email", type: "text", inputmode: "email", hint: "Shown to the client as the address to write to." },
+    { key: "book", param: "mgr-book", label: "Link to book a call", type: "url", inputmode: "url", hint: "The manager's booking page (starts with https://). The client sees a “Book a call” link. Without it the form shows the company phone." }
+  ];
+  MGR.forEach(function (f) {
+    var id = "m-" + f.param;
+    var input = h("input", {
+      class: "wm-input", id: id, name: f.param, type: f.type, inputmode: f.inputmode, autocomplete: "off",
+      autocapitalize: f.key === "name" ? null : "off", spellcheck: "false", "aria-describedby": "help-" + f.param + " err-" + f.param
+    });
+    var err = h("p", { class: "field-error", id: "err-" + f.param, text: "" });
+    err.hidden = true;
+    inputs[f.param] = { input: input, err: err, field: f };
+    form.appendChild(h("div", { class: "mgr-field" }, [
+      h("label", { class: "wm-h3 field-label", for: id }, [f.label, h("span", { class: "optional", text: " (optional)" })]),
+      h("p", { class: "hint", id: "help-" + f.param, text: f.hint }),
+      h("div", { class: "field" }, [input]),
+      err
+    ]));
+  });
+
   // Where the receiver emails this client's results. Not in the spec: it is delivery, not content.
   var toInput = h("input", {
     class: "wm-input", id: "m-" + TO, name: TO, type: "text", inputmode: "email", autocomplete: "off",
@@ -164,8 +188,17 @@
     var toProblem = recipientProblem(recipients);
     showError(TO, toProblem);
     if (toProblem && !firstBad) firstBad = toInput;
+    var typed = {}, manager;
+    MGR.forEach(function (f) { typed[f.key] = inputs[f.param].input.value.trim(); });
+    manager = E.cleanManager(typed);
+    MGR.forEach(function (f) {
+      var bad = f.key !== "name" && typed[f.key] && !manager[f.key];
+      showError(f.param, !bad ? "" : f.key === "email" ? "“" + typed.email + "” is not a valid email address."
+        : "The booking link must be a full address that starts with https://");
+      if (bad && !firstBad) firstBad = inputs[f.param].input;
+    });
     if (firstBad) { hideResult(); firstBad.focus(); return; }
-    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values, recipients);
+    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values, recipients, manager);
     var nameField = FIELDS[0];
     resultTitle.textContent = "Link for " + (values[nameField.param] || "the client");
     status.textContent = "";
