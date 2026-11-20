@@ -90,10 +90,10 @@ async function run390() {
     ok(geo.imgL >= 0 && geo.imgR <= 390 && geo.imgW >= 300, 'whole plan fits the screen width: ' + J(geo));
     ok(geo.n === 4 && geo.minW >= 44 && geo.minH >= 44 && geo.minGap >= 44, 'breaker layer: 4 tap targets >= 44 px, no overlap');
     let hb = await b.ev('T.hots("breaker")');
-    ok(hb.every(x => !x.passive && !x.dis) && hb.map(x => x.marker).join() === 'B1,B2,B3,B4', 'breaker hotspots active with markers B1..B4: ' + hb.map(x => x.marker).join(','));
+    ok(hb.every(x => !x.passive && !x.dis) && hb.map(x => x.marker).join() === '1,2,3,4', 'breaker hotspots active with markers 1..4: ' + hb.map(x => x.marker).join(','));
     ok(J(await b.ev('T.st("breaker").map(x=>x.v)')) === J(['back-left', 'back-right', 'right-upper', 'right-lower']) &&
-      J(await b.ev('T.btns("breaker").map(e=>e.textContent)')) === J(['B1 — Back-left, outside', 'B2 — Back-right, outside', 'B3 — Right side, upper, outside', 'B4 — Right side, lower, outside']), 'breaker list labels B1..B4');
-    ok((await b.ev('T.hots("exterior").map(x=>x.v)')).length === 4 && J(await b.ev('[...document.querySelectorAll("#plan-electrical .hot[data-qid=exterior] .dot")].map(d=>d.textContent)')) === '["E1","E2","E3","E4"]', 'exterior outlets stay E1..E4');
+      J(await b.ev('T.btns("breaker").map(e=>e.textContent)')) === J(['1 — Back-left, outside', '2 — Back-right, outside', '3 — Right side, upper, outside', '4 — Right side, lower, outside']), 'breaker list labels 1..4');
+    ok((await b.ev('T.hots("exterior").map(x=>x.v)')).length === 4 && J(await b.ev('[...document.querySelectorAll("#plan-electrical .hot[data-qid=exterior] .dot")].map(d=>d.textContent)')) === '["1","2","3","4"]', 'exterior outlets are 1..4');
     let he = await b.ev('T.hots("exterior").concat(T.hots("interior"))');
     ok(he.every(x => x.passive && x.dis && !x.marker), 'other layers passive, disabled, no numbers on the plan');
     // 2.5.0: markers of the non-active layers are not drawn at all (were small dots of their picks); the picks are kept.
@@ -171,6 +171,12 @@ async function run390() {
     await b.ev('T.click("skylightType","manual")');
     ok(J(await b.ev(SKY)) === J({ loc: false, plan: false, head: false, saved: null }), 'manual skylight: location and roof plan shown');
     ok(await b.ev('document.querySelector("#qh-skylightLoc h3").textContent') === 'Where should the skylight go?' && await b.ev('!document.querySelector("#q-skylightLoc h3")'), 'roof plan heading above the plan, list block has no h3');
+    // No abbreviations (Ilya 2026-11-19): the spots are "Option 1..3" in the list; on the plan a phone shows the number alone
+    // (three spots sit about 62 pt apart), a wide screen shows "Option 1".
+    const skyM = await b.ev('({list:T.btns("skylightLoc").map(e=>e.textContent), dots:T.hots("skylightLoc").map(x=>x.marker), word:[...document.querySelectorAll("#plan-roof .hot .mk-word")].map(e=>getComputedStyle(e).display), w:[...document.querySelectorAll("#plan-roof .hot .dot")].map(e=>Math.round(e.getBoundingClientRect().width))})');
+    ok(J(skyM.list) === J(['Option 1', 'Option 2', 'Option 3']) && J(skyM.dots) === J(['Option 1', 'Option 2', 'Option 3']), 'skylight spots are Option 1..3 in the list and on the plan, no S1..S3: ' + J(skyM.list));
+    ok(skyM.word.every(d => d === 'none') && skyM.w.every(x => x === 30), 'at 390 pt the plan marker is the number alone in a 30 pt circle: ' + J(skyM.w));
+    ok(await b.ev('!/\\b[SBEI][1-5]\\b/.test(SPEC_DATA.steps.map(s=>JSON.stringify((s.items||[]).map(i=>[i.hint,(i.options||[]).map(o=>[o.label,o.marker])]))).join(" "))'), 'spec: no letter-number codes (S1, B2, E3, I4) in labels, markers or hints');
     await b.ev('T.click("skylightLoc","center",true)');
     ok(J(await b.ev('T.on("skylightLoc")')) === '["center"]', 'skylight location picked on the plan');
     await b.ev('T.scrollTo("#q-skylightType")'); await sleep(200);

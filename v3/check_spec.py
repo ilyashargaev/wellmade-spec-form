@@ -395,7 +395,8 @@ class Checker:
             if not isinstance(p, dict):
                 self.err(where, '"plan" must be an object like {"id": "...", "shape": "circle"}')
             else:
-                self.keys(p, {"id", "shape", "legend"}, where + " > plan")
+                self.keys(p, {"id", "shape", "legend", "markerWord"}, where + " > plan")
+                self.need_str(p, "markerWord", where + " > plan", required=False)
                 if p.get("id") not in plans:
                     self.err(where + " > plan", 'plan "%s" is not defined in "plans"' % p.get("id"))
                 else:

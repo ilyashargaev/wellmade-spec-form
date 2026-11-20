@@ -352,11 +352,17 @@
     var inner = h("div", { class: "plan-inner" }, [img]);
     group.forEach(function (q) {
       (q.options || []).forEach(function (opt) {
+        // plan.markerWord ("Option"): the marker reads "Option 1" where the spots are far enough apart
+        // (styles.css shows the word on wide screens); on a phone the number alone stays.
+        var word = q.plan.markerWord;
+        var dot = h("span", { class: "dot", "aria-hidden": "true" }, word
+          ? [h("span", { class: "mk-word", text: word + " " }), document.createTextNode(opt.marker || "")]
+          : [document.createTextNode(opt.marker || "")]);
         var btn = h("button", {
           type: "button",
-          class: "hot " + (q.plan.shape || "circle"),
+          class: "hot " + (q.plan.shape || "circle") + (word ? " worded" : ""),
           "data-action": "toggle", "data-plan": planId, "data-qid": q.id, "data-value": opt.id
-        }, [h("span", { class: "dot", "aria-hidden": "true", text: opt.marker || "" })]);
+        }, [dot]);
         btn.style.left = opt.x + "%";
         btn.style.top = opt.y + "%";
         inner.appendChild(btn);

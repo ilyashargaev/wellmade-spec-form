@@ -289,6 +289,14 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   text-align: center;
   box-shadow: 0 0 0 3px rgba(16, 128, 120, .15);
 }
+/* A marker with a word ("Option 1", plan.markerWord): the word shows where the spots are far enough apart.
+   On a phone three spots sit about 62 pt apart, so the number alone stays there. */
+.hot .mk-word { display: none; }
+@media (min-width: 640px) {
+  .hot.worded:not(.passive) { width: auto; min-width: var(--wm-tap); border-radius: 100px; }
+  .hot.worded:not(.passive) .dot { width: auto; padding: 0 12px; border-radius: 100px; white-space: nowrap; }
+  .hot.worded:not(.passive) .mk-word { display: inline; }
+}
 .hot.square .dot { border-radius: 8px; }
 .hot.diamond .dot { border-radius: 12px; }
 .hot.on .dot, .hot-sample.on .dot { background: var(--wm-teal); border-color: var(--wm-teal); color: var(--wm-white); }

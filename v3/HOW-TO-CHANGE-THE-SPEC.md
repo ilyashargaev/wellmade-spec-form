@@ -53,6 +53,7 @@ The file is JSON: double quotes only, a comma between items, **no comma after th
 ```
 
 - **Question kinds**: `single` (choose one; tap again clears), `multi` (choose several), `text` (one line), `lines` (comments box), `plan-single` / `plan-multi` (points on a plan picture). Not questions: `figure` (a picture with a caption), `note` (a block of text).
+- **Points on a plan**: each option of a `plan-single` / `plan-multi` question has `x`, `y` (percent of the picture) and a `marker`, the short text in the point. Use plain numbers (`"1"`, `"2"`), never letter codes like S1 or B2: a client does not know what the letter stands for. `plan.markerWord` (for example `"Option"`) puts a word before the number, "Option 1": it shows on wide screens, and on a phone the number alone stays because the points are too close for a word. Use it only on a plan with a few points far apart.
 - **Option fields**: `id`, `label` (what the client reads), optional `tag` (a fixed badge such as `"Included"` or `"Additional cost"`), `image` (makes it a photo tile; needs `"layout": "photos"` on the question), `group` (series heading, see `groups` on the decking question), `color` (finish preview, section 7).
 - **Ids**: letters, digits and `-`, starting with a letter (`cedar-red`, `trex-select-saddle`). Option ids must be unique inside their question; step and question ids unique in the whole file.
 - `"optional": true` on a question: an empty answer is not listed as "still open" on Review.
