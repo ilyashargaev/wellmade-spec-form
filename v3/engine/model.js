@@ -160,66 +160,67 @@
       return id && option(qq, id) ? id : null;
     }
 
-    function isLocked(qq, value, a) {
-      return includedOption(qq, a) === value && valuesOf(qq, a).indexOf(value) < 0;
+    // Options of a "baseIncluded" rule: they come with the base model and are always on.
+    function baseOptions(qq) {
+      var rule = baseIncluded[qq.id];
+      return rule ? rule.options.filter(function (id) { return !!option(qq, id); }) : [];
     }
 
-    // Options that count as chosen, in option order (includes an automatically included one).
+    // An included option cannot be switched off or moved: the one a source answer includes
+    // ("includedBy") and the ones that come with the base model ("baseIncluded").
+    function isLocked(qq, value, a) {
+      return includedOption(qq, a) === value || baseOptions(qq).indexOf(value) >= 0;
+    }
+
+    // An "includedBy" question waits for its source answer: until then nothing can be picked in it.
+    function isBlocked(qid, a) {
+      var qq = q(qid), rule = includedBy[qid];
+      return !!(qq && rule && !includedOption(qq, a));
+    }
+
+    // Options that count as chosen, in option order (includes the automatically included ones).
     function effective(qq, a) {
       var chosen = valuesOf(qq, a).slice();
       var inc = includedOption(qq, a);
       if (inc && chosen.indexOf(inc) < 0) chosen.push(inc);
+      baseOptions(qq).forEach(function (id) { if (chosen.indexOf(id) < 0) chosen.push(id); });
       return (qq.options || []).map(function (o) { return o.id; })
         .filter(function (id) { return chosen.indexOf(id) >= 0; });
     }
 
-    // Tags that depend on answers: { optionId: {text, kind} }, kind = "included" | "extra" | "pending" | "swap".
+    // Tags that depend on answers: { optionId: {text, kind} }.
+    // kind = "included" (comes with the studio, cannot be switched off), "extra" (picked, costs extra),
+    // "add" (not picked: what it would cost). A question that waits for its source answer shows no "add".
     function tagInfo(qq, a) {
       var tags = {};
       function put(id, text, kind) { if (text) tags[id] = { text: text, kind: kind }; }
-      var ib = includedBy[qq.id];
-      if (ib) {
-        var inc = includedOption(qq, a);
-        var explicit = valuesOf(qq, a);
-        if (!inc) {
-          explicit.forEach(function (v) { put(v, ib.pendingTag, "pending"); });
-          return tags;
-        }
-        effective(qq, a).forEach(function (v) {
-          if (v === inc) put(v, ib.includedTag, "included");
-          else put(v, extraText(ib), "extra");
-        });
-        return tags;
-      }
-      var base = baseIncluded[qq.id];
-      if (base) {
-        var chosen = valuesOf(qq, a);
-        var limit = typeof base.extraAfter === "number" ? base.extraAfter : base.options.length;
-        chosen.forEach(function (v) {
-          if (!option(qq, v)) return;
-          if (base.options.indexOf(v) >= 0) put(v, base.includedTag, "included");
-          else if (chosen.length > limit) put(v, extraText(base), "extra");
-          else put(v, base.swapTag, "swap");
-        });
-      }
+      var rule = includedBy[qq.id] || baseIncluded[qq.id];
+      if (!rule) return tags;
+      var blocked = isBlocked(qq.id, a);
+      var on = effective(qq, a);
+      (qq.options || []).forEach(function (o) {
+        if (on.indexOf(o.id) < 0) { if (!blocked) put(o.id, extraText(rule), "add"); }
+        else if (isLocked(qq, o.id, a)) put(o.id, rule.includedTag, "included");
+        else put(o.id, extraText(rule), "extra");
+      });
       return tags;
     }
 
-    // Same as tagInfo, text only: { optionId: "Included" | ... }.
+    // Same as tagInfo, text only and only for the options that are on: { optionId: "Included" | "+$400" }.
     function dynamicTags(qq, a) {
       var info = tagInfo(qq, a);
       var out = {};
-      Object.keys(info).forEach(function (k) { out[k] = info[k].text; });
+      Object.keys(info).forEach(function (k) { if (info[k].kind !== "add") out[k] = info[k].text; });
       return out;
     }
 
-    // The tags a question can show, for a legend: [{kind, text}] in a fixed order.
-    function tagLegend(qid) {
+    // What the plan says about a question with included options: the sentence under the plan
+    // ("includedNote"), the text over a plan that waits for its source answer ("blockedNote") and
+    // that source question.
+    function planNotes(qid) {
       var r = includedBy[qid] || baseIncluded[qid];
-      if (!r) return [];
-      var extra = hasPrice(r, "extraPrice") ? priceTag(r.extraPrice) + " each" : r.extraTag;
-      var list = [["included", r.includedTag], ["extra", extra], ["pending", r.pendingTag], ["swap", r.swapTag]];
-      return list.filter(function (x) { return x[1]; }).map(function (x) { return { kind: x[0], text: x[1] }; });
+      if (!r) return null;
+      return { included: r.includedNote || "", blocked: r.blockedNote || "", source: r.source || "" };
     }
 
     function hasDynamicTags(qq) { return !!(includedBy[qq.id] || baseIncluded[qq.id]); }
@@ -237,7 +238,8 @@
         kind: info ? info.kind : "",
         dynamicTag: dyn,
         locked: isLocked(qq, value, a),
-        disabled: isInactive(qid, a)
+        blocked: isBlocked(qid, a),
+        disabled: isInactive(qid, a) || isBlocked(qid, a)
       };
     }
 
@@ -268,6 +270,7 @@
           v.forEach(function (val) {
             if (typeof val === "string" && option(qq, val)) list = addToMulti(qq, list, val);
           });
+          baseOptions(qq).forEach(function (id) { if (list.indexOf(id) < 0) list.push(id); });
           a[qq.id] = list;
         }
       });
@@ -277,17 +280,15 @@
     function toggle(answers, qid, value) {
       var qq = q(qid);
       var a = copy(answers || defaultAnswers());
-      if (!qq || !option(qq, value) || isInactive(qid, a)) return a;
+      if (!qq || !option(qq, value) || isInactive(qid, a) || isBlocked(qid, a)) return a;
       if (isSingle(qq)) {
         a[qid] = a[qid] === value ? null : value;
       } else if (isMulti(qq)) {
         var list = valuesOf(qq, a).slice();
         var at = list.indexOf(value);
+        if (isLocked(qq, value, a)) return a; // an included option stays on
         if (at >= 0) list.splice(at, 1);
-        else {
-          if (isLocked(qq, value, a)) return a;
-          list = addToMulti(qq, list, value);
-        }
+        else list = addToMulti(qq, list, value);
         a[qid] = list;
       }
       return normalize(a);
@@ -464,7 +465,9 @@
       effective: effective,
       dynamicTags: dynamicTags,
       tagInfo: tagInfo,
-      tagLegend: tagLegend,
+      planNotes: planNotes,
+      isBlocked: isBlocked,
+      isLocked: function (qid, value, a) { var qq = q(qid); return !!qq && isLocked(qq, value, a); },
       hasDynamicTags: hasDynamicTags,
       optionState: optionState,
       isEmpty: isEmpty,

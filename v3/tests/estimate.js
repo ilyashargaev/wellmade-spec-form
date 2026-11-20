@@ -66,7 +66,7 @@ const full = async (b, file, sel) => {
     let s = await b.ev(BAR);
     ok(s && s.k === EST.label && s.v === '$47,900' && s.more === '' && s.inBar && s.live === 'polite', 'Finishes: the bar shows "Estimate $47,900" above the buttons: ' + J(s));
     ok(s.w === 390 && s.clear, 'the estimate line adds no horizontal scroll and the bar does not cover the end of the page (bar ' + s.barH + ' pt)');
-    ok(s.fine === EST.note && parseFloat(s.fineSize) <= 13, 'the note about the estimate is under the step in small print (' + s.fineSize + ')');
+    ok(s.fine === null, 'no small print about the estimate under a step (0.3.9: the note is on Review only)');
     await view(b, '390-finishes-estimate.png');
     await b.ev('T.go("addons")'); await sleep(300);
     await b.ev('T.click("heater","heater")'); await sleep(100);

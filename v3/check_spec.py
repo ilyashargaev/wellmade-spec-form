@@ -56,8 +56,8 @@ STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showMo
 # under the heading. It adds to the form; a text the client must read stays in hint / intro.
 COMMON_Q = {"id", "kind", "label", "hint", "note", "optional", "lead", "ask", "hideLabel", "card", "emptyText", "more", "teamNote"}
 ITEM_KEYS = {
-    "text": COMMON_Q | {"autocomplete", "inputmode", "suffix"},
-    "lines": COMMON_Q,
+    "text": COMMON_Q | {"autocomplete", "inputmode", "suffix", "placeholder"},  # placeholder = grey sample text in the empty field
+    "lines": COMMON_Q | {"placeholder"},
     "single": COMMON_Q | {"options", "layout", "groups"},
     "multi": COMMON_Q | {"options", "layout", "groups"},
     "plan-single": COMMON_Q | {"options", "plan", "showCount"},
@@ -71,8 +71,10 @@ PLAN_OPTION_KEYS = {"id", "label", "tag", "marker", "x", "y"}
 RULE_KEYS = {
     "alone": {"type", "question", "option", "why"},
     "exclusive": {"type", "question", "options", "why"},
-    "includedBy": {"type", "question", "source", "map", "includedTag", "extraTag", "extraPrice", "pendingTag", "why"},
-    "baseIncluded": {"type", "question", "options", "includedTag", "extraTag", "extraPrice", "swapTag", "extraAfter", "why"},
+    # includedNote = the sentence under the plan about the included spots; blockedNote = the text over
+    # the plan while the source question has no answer (nothing can be picked until then).
+    "includedBy": {"type", "question", "source", "map", "includedTag", "extraTag", "extraPrice", "includedNote", "blockedNote", "why"},
+    "baseIncluded": {"type", "question", "options", "includedTag", "extraTag", "extraPrice", "includedNote", "why"},
     "disables": {"type", "when", "targets", "hide", "note", "why"},
 }
 
@@ -153,8 +155,8 @@ class Checker:
 
     def check_more(self, item, kind, where):
         more, mw = item["more"], where + " > more"
-        if kind not in ("single", "multi") or item.get("hideLabel"):
-            self.err(mw, 'the "?" sits by a visible heading: "more" works on "single" and "multi" questions without "hideLabel"')
+        if kind not in ("single", "multi", "plan-single", "plan-multi") or item.get("hideLabel"):
+            self.err(mw, 'the "?" sits by a visible heading: "more" works on choice and plan questions without "hideLabel"')
         if not isinstance(more, dict):
             self.err(mw, '"more" must be an object: {"label": "...", "text": ["paragraph", ...]}')
             return
@@ -230,8 +232,17 @@ class Checker:
             if not isinstance(prices, dict):
                 self.err("prices", 'must be an object like {"unit": "USD", "note": "..."}')
             else:
-                self.keys(prices, {"unit", "symbol", "note", "quoteTags", "quoteHelp", "estimate"}, "prices")
+                self.keys(prices, {"unit", "symbol", "note", "quoteTags", "quoteHelp", "quoteHelpByTag", "estimate"}, "prices")
                 self.need_str(prices, "quoteHelp", "prices", required=False)
+                # quoteHelpByTag: a tag of quoteTags with its own sentence instead of quoteHelp.
+                by = prices.get("quoteHelpByTag")
+                if by is not None:
+                    if not isinstance(by, dict) or not all(isinstance(v, str) and v.strip() for v in by.values()):
+                        self.err("prices", '"quoteHelpByTag" must be an object {tag: sentence}')
+                    else:
+                        for t in by:
+                            if t not in (prices.get("quoteTags") or []):
+                                self.err("prices", '"quoteHelpByTag": "%s" is not one of "quoteTags"' % t)
                 self.need_str(prices, "unit", "prices")
                 self.need_str(prices, "symbol", "prices", required=False)
                 self.need_str(prices, "note", "prices", required=False)
@@ -394,6 +405,7 @@ class Checker:
                 for k in ("lead", "ask", "emptyText"):
                     self.need_str(item, k, where, required=False)
                 self.need_bool(item, "hideLabel", where)
+                self.need_str(item, "placeholder", where, required=False)
                 if kind == "figure":
                     self.image(item.get("image"), where)
                     self.need_str(item, "alt", where)
@@ -455,7 +467,8 @@ class Checker:
             if not isinstance(g, dict):
                 self.err(gw, "must be an object")
                 continue
-            self.keys(g, {"id", "title", "text", "teamNote"}, gw)
+            self.keys(g, {"id", "title", "text", "after", "teamNote"}, gw)  # after = one line under the tiles of the group
+            self.need_str(g, "after", gw, required=False)
             if "teamNote" in g and g["teamNote"] not in self.team_notes:
                 self.err(gw, '"teamNote": no note "%s" in the top-level "teamNotes"' % g["teamNote"])
             gid = self.need_id(g, gw)
@@ -717,7 +730,7 @@ class Checker:
             elif t == "includedBy":
                 q = question("question", MULTI_KINDS)
                 src = question("source", {"single", "plan-single"})
-                for k in ("includedTag", "extraTag", "pendingTag"):
+                for k in ("includedTag", "extraTag", "includedNote", "blockedNote"):
                     self.need_str(r, k, rw, required=False)
                 self.need_price(r, "extraPrice", rw)
                 if q and src:
@@ -741,12 +754,9 @@ class Checker:
                 q = question("question", MULTI_KINDS)
                 if q:
                     options_of(q, r.get("options"), "options")
-                for k in ("includedTag", "extraTag", "swapTag"):
+                for k in ("includedTag", "extraTag", "includedNote"):
                     self.need_str(r, k, rw, required=False)
                 self.need_price(r, "extraPrice", rw)
-                ea = r.get("extraAfter")
-                if ea is not None and (not isinstance(ea, int) or isinstance(ea, bool) or ea < 0):
-                    self.err(rw, '"extraAfter" must be a whole number')
             elif t == "disables":
                 when = r.get("when")
                 wq = None

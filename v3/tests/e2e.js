@@ -99,25 +99,32 @@ async function run390() {
     // 2.5.0: markers of the non-active layers are not drawn at all (were small dots of their picks); the picks are kept.
     ok(await b.ev('[...document.querySelectorAll("#plan-electrical .hot.passive")].every(e=>getComputedStyle(e).display==="none")'), 'other layers: markers not drawn (display none)');
     ok(J(await b.ev('T.marks("interior")')) === '["back-left:included","back-right:included","right-lower:included"]', 'other layer keeps its picks (3 base interior outlets marked on)');
-    ok(await b.ev('document.getElementById("legend-electrical").hidden'), 'legend hidden on the breaker layer (no tag kinds there)');
+    ok(await b.ev('document.getElementById("legend-electrical").textContent') === 'Breaker boxExterior outletsInterior outlets', 'legend under the plan names the three shapes');
     await b.ev('T.scrollTo("#plan-electrical")'); await sleep(200);
     await b.shot(path.join(SHOTS, '390-electrical-1-breaker.png'));
 
     await b.ev('T.layer("exterior")'); await sleep(150);
     ok(await b.ev('!document.getElementById("q-exterior").classList.contains("layer-off") && document.getElementById("q-breaker").classList.contains("layer-off")'), 'chip switches the question block under the plan');
     const LEG = '(()=>{const l=document.getElementById("legend-electrical"); return {hidden:l.hidden, items:[...l.children].map(e=>e.textContent)};})()';
-    ok((await b.ev(LEG)).hidden, 'exterior layer, nothing picked: legend hidden');
+    const BLOCK = '(()=>{const s=document.querySelector("#plan-electrical .plan-stage"), k=document.getElementById("block-electrical"); return {blocked:s.classList.contains("is-blocked"), text:k.hidden?null:k.textContent};})()';
+    ok(J(await b.ev(BLOCK)) === J({ blocked: true, text: 'Select the breaker box first' }), 'exterior before the breaker box: the plan is dimmed and says what to pick first');
+    ok((await b.ev('T.hots("exterior")')).every(x => x.dis && !x.price) && (await b.ev('T.st("exterior")')).every(x => x.dis && !x.tag), 'exterior before the breaker box: spots and list are off, no prices shown');
     await b.ev('T.click("exterior","back-left",true)');
-    ok(J(await b.ev('T.on("exterior")')) === '["back-left:Depends on breaker box"]', 'exterior picked on the plan before a breaker: Depends on breaker box');
-    ok(J(await b.ev('T.marks("exterior")')) === '["back-left:pending"]', 'plan mark: pending');
-    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Depends on breaker box'] }), 'legend: only the pending kind is on the plan');
-    await b.ev('T.layer("breaker")'); await b.ev('T.click("breaker","right-lower",true)');
+    ok(J(await b.ev('T.on("exterior")')) === '[]', 'nothing can be picked before the breaker box');
+    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Breaker boxExterior outletsInterior outlets'] }), 'legend: only the three shapes while the layer waits');
+    await b.ev('document.getElementById("block-electrical").click()'); await sleep(100);
+    ok(await b.ev('document.querySelector(".layer-chip[data-qid=breaker]").getAttribute("aria-pressed")') === 'true', 'a tap on "Select the breaker box first" opens the breaker box layer');
+    await b.ev('T.click("breaker","right-lower",true)');
     ok(J(await b.ev('T.on("breaker")')) === '["right-lower"]', 'breaker set from the plan hotspot');
     await b.ev('T.layer("exterior")');
     v = await b.ev('T.on("exterior")');
-    ok(J(v) === '["back-left:+$500","right-lower:Included"]', 'included exterior outlet follows the breaker: ' + J(v));
+    ok(J(v) === '["right-lower:Included"]' && J(await b.ev(BLOCK)) === J({ blocked: false, text: null }), 'breaker picked: the exterior layer opens with the outlet under it included: ' + J(v));
+    ok(J((await b.ev('T.hots("exterior")')).map(x => x.price)) === J(['+$500', '+$500', '+$500', '']), 'each spot that can be added shows its price on the plan');
+    await b.ev('T.click("exterior","back-left",true)');
+    v = await b.ev('T.on("exterior")');
+    ok(J(v) === '["back-left:+$500","right-lower:Included"]', 'an added exterior outlet is tagged with its price: ' + J(v));
     ok(J(await b.ev('T.marks("exterior")')) === '["back-left:extra","right-lower:included"]', 'plan marks: included + extra');
-    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+$500 each'] }), 'legend: Included + the price of an extra outlet, nothing else');
+    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Breaker boxExterior outletsInterior outlets', 'The exterior outlet under the breaker box is included.'] }), 'legend: the three shapes and the sentence about the included outlet');
     await b.ev('T.click("exterior","right-lower",true)');
     ok(J(await b.ev('T.on("exterior")')) === '["back-left:+$500","right-lower:Included"]', 'included outlet cannot be removed (plan tap)');
     ok(await b.ev('document.querySelector(".layer-chip[data-qid=exterior] .count").textContent') === '2', 'chip count still kept up to date (2 exterior outlets)');
@@ -142,13 +149,15 @@ async function run390() {
     await b.ev('T.click("interior","left-upper",true)');
     ok((await b.ev('T.on("interior")')).includes('left-upper:+$400') && (await b.ev('T.marks("interior")')).includes('left-upper:extra'), '4th interior outlet tagged with its price, plan mark extra');
     ok(await b.ev('!document.getElementById("count-interior")'), 'no interior count line (showCount removed in 2.5.0)');
-    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Included', '+$400 each'] }), 'legend: Included + the price of an extra outlet only');
+    ok(J(await b.ev(LEG)) === J({ hidden: false, items: ['Breaker boxExterior outletsInterior outlets', 'Three interior outlets are included.'] }), 'legend: the three shapes and "Three interior outlets are included."');
+    ok(J((await b.ev('T.hots("interior")')).map(x => x.price)) === J(['', '', '+$400', '+$400', '']), 'interior: the price stands by the added spot and the one that can be added, not by the included ones');
     await b.ev('T.scrollTo("#plan-electrical")'); await sleep(200);
     await b.shot(path.join(SHOTS, '390-electrical-3-interior.png'));
     await b.ev('T.click("interior","back-right")');
-    ok((await b.ev('T.on("interior")')).includes('left-upper:Confirm in Comments'), 'swapped interior = Confirm in Comments');
+    v = await b.ev('T.on("interior")');
+    ok(v.length === 4 && v.includes('back-right:Included'), 'an included interior outlet cannot be switched off (list tap): ' + J(v));
     const legend = await b.ev(LEG);
-    ok(J(legend) === J({ hidden: false, items: ['Included', 'Confirm in Comments'] }), 'legend lists only the kinds on the plan now: ' + J(legend));
+    ok(J(legend) === J({ hidden: false, items: ['Breaker boxExterior outletsInterior outlets', 'Three interior outlets are included.'] }), 'legend unchanged: ' + J(legend));
     ok(!/Selected|Not selected|another layer|One only/.test(legend.items.join('|')), 'legend: no Selected / Not selected / Picked in another layer / One only');
 
     // ---- skylight -------------------------------------------------------------
@@ -251,7 +260,7 @@ async function run390() {
     await b.ev('T.go("electrical")'); await sleep(300); await b.ev(HELP);
     ok(J(await b.ev('T.on("exterior")')) === '["back-left:Included"]', 'reload keeps breaker and exterior');
     ok(J(await b.ev('T.on("connection")')) === '["hardline:Custom quote","ethernet:+$1,350"]', 'reload keeps connection');
-    ok((await b.ev('T.on("interior")')).length === 3, 'reload keeps interior');
+    ok((await b.ev('T.on("interior")')).length === 4, 'reload keeps interior (3 included + 1 added)');
     await b.ev('T.go("finishes")'); await sleep(300); await b.ev(HELP);
     ok(/Weathered Brown/.test(await b.ev('document.getElementById("preview-picked").textContent')), 'reload keeps finishes and preview');
 

@@ -40,7 +40,7 @@ ok(M.optionState('connection', 'plug-in', a).tag === 'Included' && M.optionState
 ok(M.optionState('deckConfig', 'standard', a).tag === tag(DECK), 'standard deck shows its price as the tag: ' + M.optionState('deckConfig', 'standard', a).tag);
 ok(M.optionState('deckConfig', 'custom', a).tag === 'Priced by size' && M.optionState('deckConfig', 'step', a).tag === '', 'custom deck: "Priced by size"; step deck: no tag');
 ok(M.optionState('skylightType', 'manual', a).tag === tag(MAN) && M.optionState('skylightType', 'solar', a).tag === tag(SOL) && M.optionState('skylightType', 'none', a).tag === '', 'skylight tags: manual and solar priced, NO skylight without a tag');
-ok(M.tagLegend('exterior').find(x => x.kind === 'extra').text === tag(EXT) + ' each' && M.tagLegend('interior').find(x => x.kind === 'extra').text === tag(INT) + ' each', 'plan legend says the price of each extra outlet');
+ok(M.optionState('interior', 'left-upper', M.defaultAnswers()).tag === tag(INT) && M.optionState('exterior', 'back-left', M.toggle(M.defaultAnswers(), 'breaker', 'right-lower')).tag === tag(EXT), 'a spot that can be added shows the price of an extra outlet');
 
 a = M.toggle(a, 'deckConfig', 'step'); ok(M.pricing(a).items.length === 0, 'step deck: not priced');
 a = M.toggle(a, 'deckConfig', 'custom'); ok(M.pricing(a).items.length === 0, 'custom deck: not in the total (priced by size)');
@@ -51,10 +51,10 @@ a = M.toggle(a, 'skylightType', 'solar'); ok(M.pricing(a).total === DECK + SOL, 
 a = M.toggle(a, 'skylightType', 'none'); ok(M.pricing(a).total === DECK, 'NO skylight: nothing added');
 a = M.toggle(a, 'skylightType', 'solar');
 
-// exterior outlets: nothing is priced until the breaker box says which one is included
+// exterior outlets: nothing can be picked (so nothing is priced) until the breaker box says which one is included
 a = M.toggle(a, 'exterior', 'back-left');
-ok(M.pricing(a).total === DECK + SOL && M.dynamicTags(M.question('exterior'), a)['back-left'] === 'Depends on breaker box', 'exterior outlet before the breaker box: pending, not priced');
-a = M.toggle(a, 'breaker', 'right-lower'); p = M.pricing(a);
+ok(J(a.exterior) === J([]) && M.pricing(a).total === DECK + SOL && M.isBlocked('exterior', a), 'exterior outlet before the breaker box: cannot be picked, nothing priced');
+a = M.toggle(a, 'breaker', 'right-lower'); a = M.toggle(a, 'exterior', 'back-left'); p = M.pricing(a);
 let t = M.dynamicTags(M.question('exterior'), a);
 ok(t['right-lower'] === 'Included' && t['back-left'] === tag(EXT), 'exterior tags: included one free, the other shows its price: ' + J(t));
 ok(p.items.filter(x => x.question === 'exterior').length === 1 && p.items.find(x => x.question === 'exterior').option === 'back-left' && p.total === DECK + SOL + EXT, 'exterior: only the extra outlet is priced');
@@ -68,7 +68,7 @@ a = M.toggle(a, 'interior', 'left-upper'); p = M.pricing(a);
 ok(M.dynamicTags(M.question('interior'), a)['left-upper'] === tag(INT) && p.items.filter(x => x.question === 'interior').length === 1, 'fourth interior outlet shows its price and is the only priced one');
 ok(p.total === DECK + SOL + EXT + INT && p.totalText === money(DECK + SOL + EXT + INT),'total: deck + solar + one exterior + one interior = ' + p.totalText);
 let sw = M.toggle(a, 'interior', 'back-left');
-ok(M.dynamicTags(M.question('interior'), sw)['left-upper'] === 'Confirm in Comments' && !M.pricing(sw).items.some(x => x.question === 'interior'), 'moved interior outlet (still three): "Confirm in Comments", not priced');
+ok(J(sw.interior) === J(a.interior) && M.pricing(sw).total === p.total, 'an included interior outlet cannot be switched off: nothing changes, the added one stays priced');
 const TOTAL = DECK + SOL + EXT + INT;
 
 // ---- page -----------------------------------------------------------------------------------
@@ -97,7 +97,8 @@ const TOTAL = DECK + SOL + EXT + INT;
     await b.ev('T.pick("interior","left-upper")'); await sleep(150);
     await b.ev('T.layer("exterior")'); await sleep(200);   // the legend explains the marks of the layer that is open
     const legend = await b.ev('[...document.querySelectorAll(".legend")].map(e=>e.hidden?"":e.textContent).join(" | ")');
-    ok(legend.toLowerCase().includes((tag(EXT) + ' each').toLowerCase()), 'plan legend on the page names the price of an extra outlet: ' + legend.slice(0, 160));
+    const spots = await b.ev('T.hots("exterior").map(x => x.price)');
+    ok(/is included\./.test(legend) && spots.filter(x => x === tag(EXT)).length >= 1 && spots.every(x => x === '' || x === tag(EXT)), 'the plan names the price by each spot that costs extra, the legend names the included outlet: ' + J(spots) + ' ' + legend.slice(0, 160));
     ok(await b.ev('T.overflow()') === 390, 'Electrical: no horizontal scroll at 390 px');
 
     await b.ev('T.go("review")'); await sleep(300);

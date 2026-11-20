@@ -13,7 +13,8 @@ const ctx = { console, URL }; vm.createContext(ctx);
 vm.runInContext('var window=globalThis;' + fs.readFileSync(path.join(PILOT, 'spec/presidio-xo.js'), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(path.join(PILOT, 'engine/model.js'), 'utf8'), ctx);
 const S = ctx.SPEC_DATA, E = ctx.SpecEngine;
-const HELPTEXT = S.prices.quoteHelp, QT = S.prices.quoteTags;
+const HELPTEXT = S.prices.quoteHelp, QT = S.prices.quoteTags, CUSTOMHELP = S.prices.quoteHelpByTag['Custom quote'];
+ok(/manager will discuss/i.test(CUSTOMHELP) && /possible/.test(CUSTOMHELP) && /cost/.test(CUSTOMHELP), 'spec: a Custom quote has its own sentence: the manager discusses whether it is possible and what it may cost');
 ok(typeof HELPTEXT === 'string' && /manager/i.test(HELPTEXT) && /price/i.test(HELPTEXT) && HELPTEXT.split(/\s+/).length <= 16, 'spec: prices.quoteHelp says the manager sends the price, in 16 words at most');
 // Every option with a no-number tag sits under a text (group text or question hint) that carries the sentence.
 {
@@ -21,10 +22,14 @@ ok(typeof HELPTEXT === 'string' && /manager/i.test(HELPTEXT) && /price/i.test(HE
   S.steps.forEach(st => (st.items || []).forEach(q => (q.options || []).forEach(o => {
     if (QT.indexOf(o.tag) < 0) return;
     const g = o.group && (q.groups || []).find(x => x.id === o.group);
-    const text = g ? g.text : q.hint;
-    if (!/manager will send you the price/i.test(text || '')) missing.push(q.id + '/' + o.id);
+    // the text near the option: the series text and the line under its tiles, the question hint, and the hint of a field that opens when the option is picked
+    const opens = (S.rules || []).filter(r => r.type === 'disables' && r.hide && r.when.question === q.id && [].concat(r.when.isNot || []).indexOf(o.id) >= 0)
+      .map(r => (st.items.find(i => i.id === r.targets[0]) || {}).hint || '');
+    const text = [g && g.text, g && g.after, q.hint].concat(opens).filter(Boolean).join(' ');
+    const need = o.tag === 'Custom quote' ? /manager will (contact you to )?discuss/i : /manager will send you the price/i;
+    if (!need.test(text)) missing.push(q.id + '/' + o.id);
   })));
-  ok(missing.length === 0, 'every option tagged ' + J(QT) + ' has the sentence in its series text or question hint: missing ' + J(missing));
+  ok(missing.length === 0, 'every option tagged ' + J(QT) + ' has its sentence near it (series, question hint or the field it opens): missing ' + J(missing));
 }
 const NOTE = (S.teamNotes || {}).deckPrice;
 ok(NOTE && /Clients do not see this/.test(NOTE.title) && NOTE.sign === 'Ilya' && NOTE.text.length >= 1, 'spec: the team note has a title that says clients do not see it, and a signature');
@@ -48,11 +53,28 @@ const pressed = (q, v) => `T.btns(${J(q)}).find(e => e.dataset.value === ${J(v)}
     await b.ev('T.go("finishes")'); await sleep(300);
     ok(await b.ev('__specFormExport().linkId') === 'NotesTest0000001', 'the form opened as a personal link');
     let tags = await b.ev(TAGS);
-    ok(J(tags.map(t => t.q + '/' + t.v).sort()) === J(['deckConfig/custom', 'decking/timbertech-ashwood', 'decking/timbertech-dark-roast', 'decking/trex-transcend-havana-gold', 'decking/trex-transcend-spiced-rum']) && tags.every(t => t.mark === '?'),
-      'Finishes: a "?" by each of the five tags without a number: ' + J(tags.map(t => t.v + ':' + t.tag)));
+    ok(J(tags.map(t => t.q + '/' + t.v).sort()) === J(['deckConfig/custom', 'decking/custom', 'decking/timbertech-ashwood', 'decking/timbertech-dark-roast', 'decking/trex-transcend-havana-gold', 'decking/trex-transcend-spiced-rum']) && tags.every(t => t.mark === '?'),
+      'Finishes: a "?" by each of the six tags without a number: ' + J(tags.map(t => t.v + ':' + t.tag)));
     ok(await b.ev('[...document.querySelectorAll(".wm-tag")].filter(t => /^\\+?\\$/.test(t.textContent) || t.textContent === "Included").every(t => !t.closest(".tag-q"))'), 'tags with a price or "Included" get no "?"');
     const texts = await b.ev('[...document.querySelectorAll(".group-text")].map(e => e.textContent)');
-    ok(texts.filter(t => /Additional cost\. Your manager will send you the price after you send your choices\./.test(t)).length === 2, 'the two paid decking series say the manager sends the price');
+    ok(texts.length === 3 && texts.every(t => !/Additional cost|manager/.test(t)), 'series texts describe the boards only (no "Additional cost", no manager sentence): ' + J(texts));
+    const afters = await b.ev('[...document.querySelectorAll("#q-decking .group-after")].map(e => ({ t: e.textContent, prev: e.previousElementSibling.dataset.value }))');
+    ok(J(afters) === J([{ t: HELPTEXT, prev: 'trex-transcend-spiced-rum' }, { t: HELPTEXT, prev: 'timbertech-dark-roast' }]), 'one line under the tiles of each paid series says the manager sends the price');
+    ok(await b.ev('document.querySelector("#q-stain .hint").textContent') === 'All five stains are included in the price.' && await b.ev('document.querySelector("#q-floor .hint").textContent') === 'All three floors are included in the price.'
+      && await b.ev('document.querySelectorAll("#q-stain .wm-tag, #q-floor .wm-tag").length') === 0, 'stains and floors: one line says all are included, no tags on the tiles');
+    // Custom decking: a button with a text field that opens under it
+    ok(await b.ev('document.getElementById("q-deckingCustom").hidden') && !(await b.ev('!!document.querySelector("#q-decking > .hint")')), 'the custom decking field is hidden until Custom decking is picked; no hint about Comments');
+    await b.ev('T.scrollTo("#q-decking [data-value=custom]", 200)'); await sleep(150);
+    await b.ev('document.querySelector("#q-decking [data-value=custom] .tag-q-mark").click(); true'); await sleep(150);
+    ok((await b.ev(TIP) || {}).text === CUSTOMHELP && await b.ev(pressed('decking', 'custom')) === 'false', 'Custom quote: the bubble says the manager will discuss it; the option is not picked');
+    await b.ev('T.click("decking", "custom")'); await sleep(150);
+    const cf = await b.ev('(() => { const q = document.getElementById("q-deckingCustom"), f = document.getElementById("f-deckingCustom"); return { hidden: q.hidden, ph: f.placeholder, tag: f.tagName, label: q.querySelector("label").className, hint: q.querySelector(".hint").textContent, below: q.getBoundingClientRect().top > document.querySelector("#q-decking [data-value=custom]").getBoundingClientRect().bottom }; })()');
+    ok(!cf.hidden && cf.below && cf.tag === 'TEXTAREA' && cf.ph === 'Describe the decking you want here.' && /sr-only/.test(cf.label) && /manager will contact you to discuss/.test(cf.hint), 'Custom decking picked: a text field opens under it with grey sample text: ' + J(cf));
+    await view(b, '390-custom-decking-field.png');
+    await b.ev('T.type("deckingCustom", "Cedar boards")');
+    ok(await b.ev('__specFormExport().answers.deckingCustom') === 'Cedar boards', 'the custom decking text is in the answers');
+    await b.ev('T.click("decking", "trex-select-saddle")'); await sleep(150);
+    ok(await b.ev('document.getElementById("q-deckingCustom").hidden') && await b.ev('__specFormExport().answers.deckingCustom') === '', 'another decking picked: the field closes and its text is not sent');
     ok(/priced by size\. Your manager will send you the price/i.test(await b.ev('document.querySelector("#q-deckConfig .hint").textContent')), 'Deck configuration: the hint says a custom deck is priced by the manager');
     ok(await b.ev('document.querySelectorAll(".team-btn, .team-note").length') === 0, 'a client link shows no "!" and no team note');
 
@@ -70,8 +92,8 @@ const pressed = (q, v) => `T.btns(${J(q)}).find(e => e.dataset.value === ${J(v)}
     await b.ev('document.querySelector("[data-value=trex-transcend-spiced-rum] img").click(); true'); await sleep(150);
     ok(await b.ev(TIP) === null && await b.ev(pressed('decking', 'trex-transcend-spiced-rum')) === 'true', 'tap on the picture closes the bubble and picks the option as before');
     // the last tile on the page: the bubble must not go under the bottom bar
-    await b.ev('(() => { const e = document.querySelector("[data-value=custom] .tag-q"); const bar = document.querySelector(".bar").getBoundingClientRect(); window.scrollBy(0, e.getBoundingClientRect().bottom - bar.top + 6); return true; })()'); await sleep(200);
-    await b.ev('document.querySelector("[data-value=custom] .tag-q-mark").click(); true'); await sleep(150);
+    await b.ev('(() => { const e = document.querySelector("#q-deckConfig [data-value=custom] .tag-q"); const bar = document.querySelector(".bar").getBoundingClientRect(); window.scrollBy(0, e.getBoundingClientRect().bottom - bar.top + 6); return true; })()'); await sleep(200);
+    await b.ev('document.querySelector("#q-deckConfig [data-value=custom] .tag-q-mark").click(); true'); await sleep(150);
     tip = await b.ev(TIP);
     ok(tip && tip.bottom <= tip.barTop && tip.top >= 0, 'a tag right above the bottom bar: the bubble opens upward: ' + J(tip));
     await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); await sleep(100);
@@ -80,10 +102,16 @@ const pressed = (q, v) => `T.btns(${J(q)}).find(e => e.dataset.value === ${J(v)}
     await b.ev('T.go("electrical")'); await sleep(300);
     tags = await b.ev(TAGS);
     ok(J(tags.map(t => t.q + '/' + t.v + ':' + t.tag)) === J(['connection/hardline:Custom quote']), 'Electrical: "?" by Custom quote on the hardline connection only');
-    ok(/your manager will send you the price/i.test(await b.ev('document.querySelector("#q-connection .hint").textContent')), 'Electrical: the hint says the manager sends the hardline price');
+    ok(/your manager will discuss with you whether it is possible and what it may cost/i.test(await b.ev('document.querySelector("#q-connection .hint").textContent')), 'Electrical: the hint says the manager will discuss the hardline connection');
+    ok(await b.ev('document.getElementById("more-breaker").hidden'), 'breaker box: the "?" panel is closed at first');
+    await b.ev('document.querySelector("#qh-breaker .more-btn").click(); true'); await sleep(100);
+    ok(/closest to where the power will come from/.test(await b.ev('document.getElementById("more-breaker").hidden ? "" : document.getElementById("more-breaker").textContent')), 'breaker box: the "?" by the question opens the advice on choosing the spot');
+    await b.ev('document.querySelector("#qh-breaker .more-btn").click(); true');
     await b.ev('document.querySelector("[data-value=hardline] .tag-q").click(); true'); await sleep(150);
     tip = await b.ev(TIP);
-    ok(tip && tip.right <= tip.vw - 12 && tip.left >= 12 && await b.ev(pressed('connection', 'hardline')) === 'false', 'hardline: the bubble fits at the right edge, the option is not picked');
+    ok(tip && tip.text === CUSTOMHELP && tip.right <= tip.vw - 12 && tip.left >= 12 && await b.ev(pressed('connection', 'hardline')) === 'false', 'hardline: the bubble has the Custom quote sentence and fits at the right edge, the option is not picked');
+    await b.ev('T.go("permits")'); await sleep(300);
+    ok(await b.ev('document.querySelectorAll("main .more-btn").length') === 0 && /You probably already know/.test(await b.ev('document.querySelector("main .lead").textContent')), 'Permits: no "?" (0.3.9), the text above the question stays');
     await b.ev('T.go("review")'); await sleep(300);
     ok(await b.ev(TIP) === null, 'leaving the step closes the bubble');
 

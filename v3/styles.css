@@ -129,6 +129,7 @@ main { padding: 20px 20px 132px; }
 .more-panel p + p { margin-top: 8px; }
 .note-block { margin-top: 24px; }
 .note-block p { margin: 8px 0 0; }
+.photos .group-after { margin: -4px 0 0; font-size: 14px; color: var(--wm-gray); } /* one line under the tiles of a group */
 .note-block .more-panel p { margin: 0; }
 .note-block .more-panel p + p { margin-top: 8px; }
 /* "!" by a heading: a note from the developer to the builder's team (only in links with notes=1) */
@@ -297,7 +298,29 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   border-radius: 16px;
   background: var(--wm-white);
 }
+.plan-stage { position: relative; }
 .plan-stage.is-disabled { opacity: .45; }
+/* A layer that waits for another answer: the plan is dimmed, the text over it says what to pick first. */
+.plan-stage.is-blocked .plan-inner { opacity: .3; }
+.plan-block {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  max-width: calc(100% - 48px);
+  min-height: var(--wm-tap);
+  padding: 10px 20px;
+  border: 2px solid var(--wm-teal-deep);
+  border-radius: var(--wm-radius-pill);
+  background: var(--wm-white);
+  color: var(--wm-teal-deep);
+  font: 500 15px/1.3 var(--wm-font);
+  text-align: center;
+  cursor: pointer;
+}
+.plan-block[hidden] { display: none; }
+.plan-block:focus-visible { outline: 3px solid var(--wm-teal-deep); outline-offset: 3px; }
 .plan-inner { position: relative; }
 .plan-inner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
 .hot {
@@ -337,12 +360,46 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   .hot.worded:not(.passive) .dot { width: auto; padding: 0 12px; border-radius: 100px; white-space: nowrap; }
   .hot.worded:not(.passive) .mk-word { display: inline; }
 }
-.hot.square .dot { border-radius: 8px; }
-.hot.diamond .dot { border-radius: 12px; }
+/* Three shapes, one per thing placed on a plan: circle, square, diamond (a square on its corner).
+   The diamond is drawn by ::before so that the number inside stays upright. */
+.hot.square .dot, .hot-sample.square .dot { border-radius: 4px; }
+.hot.diamond .dot, .hot-sample.diamond .dot { border-color: transparent; background: transparent; box-shadow: none; }
+.hot.diamond .dot::before, .hot-sample.diamond .dot::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  box-sizing: border-box;
+  border: 2px solid var(--wm-teal);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .95);
+  transform: rotate(45deg);
+}
+.hot-sample { position: relative; z-index: 0; }
 .hot.on .dot, .hot-sample.on .dot { background: var(--wm-teal); border-color: var(--wm-teal); color: var(--wm-white); }
-/* marks: Included = dark fill + check; Additional cost = teal + plus; Pending = dashed; swap = teal + "!" */
+.hot.diamond.on .dot, .hot-sample.diamond.on .dot { background: transparent; border-color: transparent; }
+.hot.diamond.on .dot::before, .hot-sample.diamond.on .dot::before { background: var(--wm-teal); }
+/* marks: an included spot = dark fill, no badge (it cannot be switched off); an added spot = teal fill
+   with its price under it; a spot that can be added = outline with its price under it. */
 .hot.k-included .dot, .hot-sample.k-included .dot { background: var(--wm-teal-deep); border-color: var(--wm-teal-deep); }
-.hot.k-pending .dot, .hot-sample.k-pending .dot { background: var(--wm-teal-tint); border: 2px dashed var(--wm-teal-deep); color: var(--wm-teal-deep); }
+.hot.diamond.k-included .dot, .hot-sample.diamond.k-included .dot { background: transparent; border-color: transparent; }
+.hot.diamond.k-included .dot::before, .hot-sample.diamond.k-included .dot::before { background: var(--wm-teal-deep); border-color: var(--wm-teal-deep); }
+.hot.locked { cursor: default; }
+.hot-price {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-top: -7px;
+  transform: translateX(-50%);
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--wm-teal-deep);
+  font: 700 11px/15px var(--wm-font);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.hot-price:empty { display: none; }
 .hot.on .dot::after, .hot-sample.on .dot::after {
   position: absolute;
   top: -7px;
@@ -357,9 +414,8 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   text-align: center;
   content: "\2713";
 }
-.hot.k-extra .dot::after, .hot-sample.k-extra .dot::after { content: "+"; }
-.hot.k-pending .dot::after, .hot-sample.k-pending .dot::after { content: "?"; }
-.hot.k-swap .dot::after, .hot-sample.k-swap .dot::after { content: "!"; }
+.hot.k-included .dot::after, .hot-sample.k-included .dot::after,
+.hot.k-extra .dot::after, .hot-sample.k-extra .dot::after { display: none; }
 .hot:disabled { cursor: default; }
 .hot.passive { pointer-events: none; z-index: 1; }
 .hot.passive:not(.on) { visibility: hidden; }
@@ -372,10 +428,16 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   font-size: 0;
 }
 .hot.passive .dot::after, .hot-sample.passive .dot::after { display: none; }
+.hot.passive.square .dot { border-radius: 2px; }
+.hot.passive.diamond .dot { background: transparent; }
+.hot.passive.diamond .dot::before { inset: 1px; border: 0; border-radius: 1px; background: var(--wm-gray-light); }
 .hot:focus-visible { outline: none; }
 .hot:focus-visible .dot { outline: 3px solid var(--wm-teal-deep); outline-offset: 3px; }
-.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 12px 0 0; font-size: 13px; color: var(--wm-gray); }
-.legend > span { display: inline-flex; align-items: center; gap: 8px; }
+.legend { margin: 12px 0 0; font-size: 13px; color: var(--wm-gray); }
+.legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.legend-row + .legend-row { margin-top: 8px; }
+.legend-row > span { display: inline-flex; align-items: center; gap: 8px; }
+.legend-included { color: var(--wm-ink); }
 .hot-sample { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; }
 .hot-sample .dot { width: 18px; height: 18px; box-shadow: none; }
 .hot-sample.passive .dot { width: 10px; height: 10px; }

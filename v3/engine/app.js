@@ -179,12 +179,15 @@
 
   // A tag that means "costs extra, no list price" (prices.quoteTags) gets a small "?" next to it.
   // A tap on the tag or the "?" shows prices.quoteHelp in a bubble and does not pick the option.
-  // The same sentence is written in the text of the series or question, so nobody depends on the bubble.
+  // prices.quoteHelpByTag gives a tag its own sentence ("Custom quote": the manager discusses it first).
+  // The same sentence is written near the options, so nobody depends on the bubble.
   var QUOTE_TAGS = (SPEC.prices && SPEC.prices.quoteTags) || [];
   var QUOTE_HELP = (SPEC.prices && SPEC.prices.quoteHelp) || "";
+  var QUOTE_HELP_BY = (SPEC.prices && SPEC.prices.quoteHelpByTag) || {};
+  function quoteHelpFor(tag) { return QUOTE_HELP_BY[tag] || QUOTE_HELP; }
   function quoteTag(st, tag) {
-    if (!QUOTE_HELP || st.dynamicTag || QUOTE_TAGS.indexOf(st.tag) < 0) return tag;
-    return h("span", { class: "tag-q" }, [tag, h("span", { class: "tag-q-mark", "aria-hidden": "true", text: "?" })]);
+    if (st.dynamicTag || QUOTE_TAGS.indexOf(st.tag) < 0 || !quoteHelpFor(st.tag)) return tag;
+    return h("span", { class: "tag-q", "data-tag": st.tag }, [tag, h("span", { class: "tag-q-mark", "aria-hidden": "true", text: "?" })]);
   }
   var tipFor = null;
   function closeTip() {
@@ -195,7 +198,7 @@
   function toggleTip(anchor) {
     if (tipFor === anchor) { closeTip(); return; }
     closeTip();
-    var tip = h("div", { class: "tag-tip", id: "tag-tip", role: "status", text: QUOTE_HELP });
+    var tip = h("div", { class: "tag-tip", id: "tag-tip", role: "status", text: quoteHelpFor(anchor.getAttribute("data-tag")) });
     document.body.appendChild(tip);
     var r = anchor.getBoundingClientRect();
     var vw = document.documentElement.clientWidth;
@@ -268,7 +271,7 @@
     var block = h("section", { class: "q" + (q.lead && !bare ? " has-lead" : ""), id: "q-" + q.id });
     if (!bare) {
       if (q.lead) block.appendChild(h("p", { class: "q-lead", text: q.lead }));
-      if (M.isText(q)) block.appendChild(h("label", { class: "wm-h3 field-label", for: "f-" + q.id, text: q.label }));
+      if (M.isText(q)) block.appendChild(h("label", { class: "wm-h3 field-label" + (q.hideLabel ? " sr-only" : ""), for: "f-" + q.id, text: q.label }));
       else {
         var heading = h("h3", { class: "wm-h3" + (q.hideLabel ? " sr-only" : ""), text: q.ask || q.label });
         var qNote = q.hideLabel ? null : teamNote(q);
@@ -287,7 +290,7 @@
     if (q.kind === "text") {
       var input = h("input", {
         class: "wm-input", id: "f-" + q.id, type: q.inputmode === "tel" ? "tel" : "text", "data-qid": q.id,
-        autocomplete: q.autocomplete, inputmode: q.inputmode
+        autocomplete: q.autocomplete, inputmode: q.inputmode, placeholder: q.placeholder
       });
       input.value = state.answers[q.id] || "";
       var field = h("div", { class: "field" });
@@ -295,7 +298,7 @@
       else field.appendChild(input);
       block.appendChild(field);
     } else if (q.kind === "lines") {
-      var area = h("textarea", { class: "wm-input", id: "f-" + q.id, "data-qid": q.id });
+      var area = h("textarea", { class: "wm-input", id: "f-" + q.id, "data-qid": q.id, placeholder: q.placeholder });
       area.value = state.answers[q.id] || "";
       block.appendChild(h("div", { class: "field" }, [area]));
     } else if ((q.kind === "single" || q.kind === "multi") && (q.layout === "photos" || q.layout === "drawings")) {
@@ -303,7 +306,8 @@
       var groups = {};
       (q.groups || []).forEach(function (g) { groups[g.id] = g; });
       var shown = {};
-      (q.options || []).forEach(function (opt) {
+      var opts = q.options || [];
+      opts.forEach(function (opt, oi) {
         var g = opt.group && groups[opt.group];
         if (g && !shown[g.id]) {
           shown[g.id] = true;
@@ -317,6 +321,8 @@
         }
         if (opt.image) grid.appendChild(photoButton(q, opt, q.layout === "drawings"));
         else grid.appendChild(h("div", { class: "span2" }, [choiceButton(q, opt)]));
+        // group "after": one line under the last tile of the group (what applies to all of them).
+        if (g && g.after && (!opts[oi + 1] || opts[oi + 1].group !== g.id)) grid.appendChild(h("p", { class: "span2 group-after", text: g.after }));
       });
       block.appendChild(grid);
     } else if (q.options) {
@@ -332,7 +338,7 @@
   // Every plan question of a step on the same plan is one layer; chips switch the layer.
   // Only the active layer has tap targets (44 px) with markers; other layers show their picks
   // as small dots. The active question's block (note, hint, buttons by name) sits under the plan.
-  var TAG_KINDS = ["included", "extra", "pending", "swap"];
+  var TAG_KINDS = ["included", "extra", "add"];
 
   function activeLayer(planId, group) {
     var cur = planLayer[planId];
@@ -408,7 +414,9 @@
     group.forEach(function (q, i) {
       var head = h("div", { class: "plan-head", id: "qh-" + q.id });
       if (group.length > 1) head.appendChild(h("p", { class: "plan-step", text: (i + 1) + " of " + group.length }));
-      head.appendChild(h("h3", { class: "wm-h3", text: q.ask || q.label }));
+      var heading = h("h3", { class: "wm-h3", text: q.ask || q.label });
+      if (q.more) moreHead(q, heading, head);
+      else head.appendChild(heading);
       (ruleNotes[q.id] || []).forEach(function (note) { head.appendChild(note); });
       questionNotes(q, head);
       box.appendChild(head);
@@ -427,16 +435,19 @@
           type: "button",
           class: "hot " + (q.plan.shape || "circle") + (word ? " worded" : ""),
           "data-action": "toggle", "data-plan": planId, "data-qid": q.id, "data-value": opt.id
-        }, [dot]);
+        }, [dot, h("span", { class: "hot-price", "aria-hidden": "true" })]);
         btn.style.left = opt.x + "%";
         btn.style.top = opt.y + "%";
         inner.appendChild(btn);
       });
     });
-    var stage = h("div", { class: "plan-stage" }, [inner]);
+    // Over the plan of a layer that waits for another answer ("Select the breaker box first").
+    var blockBtn = h("button", { type: "button", class: "plan-block", id: "block-" + planId });
+    blockBtn.hidden = true;
+    var stage = h("div", { class: "plan-stage" }, [inner, blockBtn]);
     box.appendChild(stage);
     if (SEEN_IO && group.length > 1) SEEN_IO.observe(stage);
-    box.appendChild(h("div", { class: "legend", id: "legend-" + planId, "aria-hidden": "true" }));
+    box.appendChild(h("div", { class: "legend", id: "legend-" + planId }));
     group.forEach(function (q) {
       var block = questionBlock(q, true);
       block.classList.add("layer");
@@ -447,7 +458,7 @@
   }
 
   function legendItem(cls, text) {
-    return h("span", {}, [h("i", { class: "hot-sample " + cls }, [h("span", { class: "dot" })]), document.createTextNode(text)]);
+    return h("span", {}, [h("i", { class: "hot-sample " + cls, "aria-hidden": "true" }, [h("span", { class: "dot" })]), document.createTextNode(text)]);
   }
 
   function paintPlan(planId) {
@@ -470,6 +481,9 @@
       TAG_KINDS.forEach(function (k) { el.classList.toggle("k-" + k, st.on && st.kind === k); });
       el.setAttribute("aria-pressed", st.on ? "true" : "false");
       el.disabled = !isActive || st.disabled;
+      // The price of a spot that can be added is written by the spot, before and after the tap.
+      var price = el.querySelector(".hot-price");
+      if (price) price.textContent = isActive && (st.kind === "add" || st.kind === "extra") ? st.tag : "";
       if (isActive) {
         el.removeAttribute("aria-hidden");
         el.removeAttribute("tabindex");
@@ -497,18 +511,39 @@
     });
     // A plan whose every question is switched off by a "hide" rule is not shown at all.
     box.hidden = group.every(function (q) { return hiddenByRule(q.id); });
-    box.querySelector(".plan-stage").classList.toggle("is-disabled", M.isInactive(active, state.answers));
-    // The legend explains only the marks that are on the plan right now.
+    var stage = box.querySelector(".plan-stage");
+    stage.classList.toggle("is-disabled", M.isInactive(active, state.answers));
+    // A layer that waits for another answer: the plan is dimmed and says what to pick first;
+    // a tap on that text opens the layer of that answer.
+    var notes = M.planNotes(active);
+    var blocked = M.isBlocked(active, state.answers);
+    stage.classList.toggle("is-blocked", blocked);
+    var blockBtn = document.getElementById("block-" + planId);
+    blockBtn.hidden = !blocked || !notes || !notes.blocked;
+    if (!blockBtn.hidden) {
+      blockBtn.textContent = notes.blocked;
+      if (group.some(function (q) { return q.id === notes.source; })) {
+        blockBtn.setAttribute("data-action", "layer");
+        blockBtn.setAttribute("data-plan", planId);
+        blockBtn.setAttribute("data-qid", notes.source);
+      } else blockBtn.removeAttribute("data-action");
+    }
+    // Under the plan: the shape of each thing placed on it, and which marks are the included ones.
     var legend = document.getElementById("legend-" + planId);
     legend.textContent = "";
-    var kindsOn = {};
-    if (activeQ) (activeQ.options || []).forEach(function (o) {
+    if (group.length > 1) {
+      var shapes = h("div", { class: "legend-row" });
+      group.forEach(function (q) { shapes.appendChild(legendItem(q.plan.shape || "circle", q.plan.legend || q.label)); });
+      legend.appendChild(shapes);
+    }
+    var hasIncluded = activeQ && (activeQ.options || []).some(function (o) {
       var os = M.optionState(active, o.id, state.answers);
-      if (os && os.on && os.kind) kindsOn[os.kind] = true;
+      return os && os.on && os.kind === "included";
     });
-    M.tagLegend(active).forEach(function (t) {
-      if (kindsOn[t.kind]) legend.appendChild(legendItem("on k-" + t.kind, t.text));
-    });
+    if (notes && notes.included && hasIncluded) {
+      legend.appendChild(h("div", { class: "legend-row legend-included" }, [
+        legendItem((activeQ.plan.shape || "circle") + " on k-included", notes.included)]));
+    }
     legend.hidden = !legend.firstChild;
     paintNext();
   }
@@ -1061,10 +1096,9 @@
       if (step.showPreview) main.appendChild(previewBlock(false));
       renderItems(step, main, heroItem);
     }
-    // The estimate is on screen on every step, so what it is and is not is written under every step
-    // (on Review the same note sits in the price block).
+    // What the estimate is and is not is written once, in the price block on Review (0.3.9:
+    // no fine print under the other steps).
     var withEst = BASE > 0 && state.view !== "sent";
-    if (withEst && step.kind !== "review" && EST.note) main.appendChild(h("p", { class: "fine-print est-note", text: EST.note }));
     app.classList.toggle("has-est", withEst);
     app.appendChild(main);
 

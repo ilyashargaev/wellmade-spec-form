@@ -11,17 +11,15 @@ ok(J(a.interior)===J(["back-left","back-right","right-lower"]),'interior base pr
 ok(J(M.dynamicTags(M.question('interior'),a))===J({"back-left":"Included","back-right":"Included","right-lower":"Included"}),'base tags');
 a=M.toggle(a,'interior','left-upper');
 ok(M.dynamicTags(M.question('interior'),a)['left-upper']==='+$400','4th interior shows its price');
-a=M.toggle(a,'interior','back-left');
-ok(M.dynamicTags(M.question('interior'),a)['left-upper']==='Confirm in Comments','swap = Confirm in Comments');
+{ const off=M.toggle(a,'interior','back-left'); ok(J(off.interior)===J(a.interior) && M.optionState('interior','back-left',a).locked,'an included interior outlet cannot be switched off (0.3.9)'); }
 a=M.toggle(a,'permits','building'); a=M.toggle(a,'permits','electrical');
 ok(J(a.permits)===J(['building','electrical']),'building+electrical');
 a=M.toggle(a,'permits','none'); ok(J(a.permits)===J(['none']),'NO permit clears others');
 a=M.toggle(a,'permits','building'); ok(J(a.permits)===J(['building']),'building clears NO');
 a=M.toggle(a,'connection','plug-in'); a=M.toggle(a,'connection','ethernet'); a=M.toggle(a,'connection','hardline');
 ok(J(a.connection)===J(['ethernet','hardline']),'plug-in vs hardline exclusive, ethernet kept');
-a=M.toggle(a,'exterior','back-left');
-ok(M.dynamicTags(M.question('exterior'),a)['back-left']==='Depends on breaker box','pending before breaker (2.5.0 text: Depends on breaker box)');
-a=M.toggle(a,'breaker','right-lower');
+{ const early=M.toggle(a,'exterior','back-left'); ok(J(early.exterior)===J([]) && M.isBlocked('exterior',a) && M.optionState('exterior','back-left',a).disabled && !M.optionState('exterior','back-left',a).tag,'exterior waits for the breaker box: nothing can be picked, no tags (0.3.9)'); }
+a=M.toggle(a,'breaker','right-lower'); ok(!M.isBlocked('exterior',a),'breaker picked: exterior opens'); a=M.toggle(a,'exterior','back-left');
 let t=M.dynamicTags(M.question('exterior'),a);
 ok(t['right-lower']==='Included' && t['back-left']==='+$500','included follows breaker');
 ok(M.optionState('exterior','right-lower',a).locked,'included locked');
@@ -59,7 +57,7 @@ ok(sd.sections[0].rows.find(r=>r.id==='client').answer==='Jane' && !sd.open.some
 ok(!('modelNote' in S0) && !S0.steps.some(x=>x.id==='project'),'spec: no modelNote, no project step');
 ok(!M.question('interior').showCount,'interior: no showCount');
 let san=M.sanitize({decking:'gone',permits:['none','building','zzz'],interior:[],breaker:'Choice3',skylightType:'none',skylightLoc:'left',dimA:'5'});
-ok(san.decking===null && J(san.permits)===J(['building']) && J(san.interior)===J([]) && san.breaker===null && san.skylightLoc===null && san.dimA==='','sanitize');
+ok(san.decking===null && J(san.permits)===J(['building']) && J(san.interior)===J(['back-left','back-right','right-lower']) && san.breaker===null && san.skylightLoc===null && san.dimA==='','sanitize (saved answers without an included interior outlet get it back)');
 ok(J(M.sanitize('junk'))===J(M.defaultAnswers()),'sanitize junk');
 let ex=M.exportAnswers(M.toggle(M.defaultAnswers(),'breaker','back-left'));
 ok(J(ex.answers.exterior)===J(['back-left']),'export writes included exterior');
@@ -68,8 +66,10 @@ ok(J(ps.layers.map(l=>[l.id,l.option,l.color]))===J([['facade','stone-gray','#9c
 ps=M.previewState(M.toggle(M.toggle(M.defaultAnswers(),'stain','natural-pine'),'decking','custom'));
 ok(ps.picked && ps.layers.every(l=>l.color===null),'Natural Pine and custom decking keep the photo (color null)');
 ok(!M.previewState(M.defaultAnswers()).picked,'nothing picked = empty preview');
-ok(J(M.tagInfo(M.question('exterior'),M.toggle(M.toggle(M.defaultAnswers(),'breaker','back-left'),'exterior','right-upper')))===J({'back-left':{text:'Included',kind:'included'},'right-upper':{text:'+$500',kind:'extra'}}),'tag kinds for plan marks');
-ok(J(M.tagLegend('exterior').map(t=>t.kind))===J(['included','extra','pending']) && M.tagLegend('breaker').length===0,'tag legend from rules');
+ok(J(M.tagInfo(M.question('exterior'),M.toggle(M.toggle(M.defaultAnswers(),'breaker','back-left'),'exterior','right-upper')))===J({'back-left':{text:'Included',kind:'included'},'back-right':{text:'+$500',kind:'add'},'right-upper':{text:'+$500',kind:'extra'},'right-lower':{text:'+$500',kind:'add'}}),'tag kinds for plan marks: included, extra, and the price of a spot that can be added');
+ok(M.planNotes('exterior').blocked==='Select the breaker box first' && M.planNotes('exterior').source==='breaker' && M.planNotes('interior').included==='Three interior outlets are included.' && M.planNotes('breaker')===null,'plan notes from rules');
+ok(M.optionState('interior','left-upper',M.defaultAnswers()).tag==='+$400' && M.optionState('interior','left-upper',M.defaultAnswers()).kind==='add' && !M.optionState('interior','left-upper',M.defaultAnswers()).on,'a spot that can be added shows its price before it is picked');
+ok(M.isInactive('deckingCustom',M.defaultAnswers()) && !M.isInactive('deckingCustom',M.toggle(M.defaultAnswers(),'decking','custom')),'the custom decking text is asked only when Custom decking is picked');
 ok(M.optionState('interior','back-left',M.defaultAnswers()).kind==='included','base interior outlet kind = included');
 // ---- client link (Phase 3) ----
 const E=ctx.SpecEngine, S=ctx.SPEC_DATA, LID='Ab3_k9-QpLm2Ts7v';

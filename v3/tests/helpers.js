@@ -19,7 +19,8 @@ window.T = {
   hots(q) {
     return T.btns(q, true).map(e => ({
       v: e.dataset.value, on: e.classList.contains('on'), passive: e.classList.contains('passive'), dis: e.disabled,
-      kind: ['included', 'extra', 'pending', 'swap'].find(k => e.classList.contains('k-' + k)) || '',
+      kind: ['included', 'extra', 'add'].find(k => e.classList.contains('k-' + k)) || '',
+      price: (e.querySelector('.hot-price') || {}).textContent || '',
       marker: getComputedStyle(e.querySelector('.dot')).fontSize === '0px' ? '' : e.textContent,
       visible: getComputedStyle(e).visibility !== 'hidden'
     }));
