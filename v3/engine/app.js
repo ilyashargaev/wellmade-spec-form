@@ -183,13 +183,42 @@
     if (q.showCount) into.appendChild(h("p", { class: "hint", id: "count-" + q.id, text: countText(q) }));
   }
 
+  // The "?" by a question heading (question "more"): a fuller explanation that opens under the
+  // heading. It adds to what the form already says; nothing the client must read is put here.
+  // Open panels are remembered while the page is open (not saved): a repaint keeps them open.
+  var moreOpen = {};
+  function moreHead(q, heading, into) {
+    var open = !!moreOpen[q.id];
+    var btn = h("button", {
+      type: "button", class: "more-btn", "data-action": "more", "data-qid": q.id,
+      "aria-expanded": open ? "true" : "false", "aria-controls": "more-" + q.id,
+      "aria-label": q.more.label || "More about this choice"
+    }, [h("span", { "aria-hidden": "true", text: "?" })]);
+    var panel = h("div", { class: "more-panel", id: "more-" + q.id },
+      (q.more.text || []).map(function (t) { return h("p", { text: t }); }));
+    panel.hidden = !open;
+    into.appendChild(h("div", { class: "q-head" }, [heading, btn]));
+    into.appendChild(panel);
+  }
+  function toggleMore(btn) {
+    var id = btn.getAttribute("data-qid"), panel = document.getElementById("more-" + id);
+    if (!panel) return;
+    moreOpen[id] = !moreOpen[id];
+    btn.setAttribute("aria-expanded", moreOpen[id] ? "true" : "false");
+    panel.hidden = !moreOpen[id];
+  }
+
   // bare = only the answer controls: a plan question shows its heading above the plan (mountPlan).
   function questionBlock(q, bare) {
     var block = h("section", { class: "q" + (q.lead && !bare ? " has-lead" : ""), id: "q-" + q.id });
     if (!bare) {
       if (q.lead) block.appendChild(h("p", { class: "q-lead", text: q.lead }));
       if (M.isText(q)) block.appendChild(h("label", { class: "wm-h3 field-label", for: "f-" + q.id, text: q.label }));
-      else block.appendChild(h("h3", { class: "wm-h3" + (q.hideLabel ? " sr-only" : ""), text: q.ask || q.label }));
+      else {
+        var heading = h("h3", { class: "wm-h3" + (q.hideLabel ? " sr-only" : ""), text: q.ask || q.label });
+        if (q.more && !q.hideLabel) moreHead(q, heading, block);
+        else block.appendChild(heading);
+      }
       questionNotes(q, block);
     }
 
@@ -849,9 +878,10 @@
       h("img", { src: c.image, alt: c.alt || "" }),
       c.caption ? h("figcaption", { text: c.caption }) : null
     ]));
+    main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: c.title }));
+    // The greeting is the first line of the text, like the opening of a letter (not a label above the title).
     var hello = fillText(c.hello);
     if (hello) main.appendChild(h("p", { class: "cover-hello", text: hello }));
-    main.appendChild(h("h1", { class: "wm-h2", id: "step-title", text: c.title }));
     (c.text || []).forEach(function (t) { main.appendChild(h("p", { class: "cover-text", text: t })); });
     var contact = coverContact(c.contact);
     if (contact) main.appendChild(contact);
@@ -1244,6 +1274,7 @@
     else if (action === "download") downloadJSON();
     else if (action === "send") sendNow();
     else if (action === "zoom") openZoom();
+    else if (action === "more") toggleMore(btn);
   });
 
   // ---- enlarged finish preview (tap the preview) ------------------------------

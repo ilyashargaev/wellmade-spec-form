@@ -96,6 +96,37 @@ main { padding: 20px 20px 132px; }
 .q h3, .q .field-label { margin: 0 0 8px; }
 .field-label { display: block; cursor: pointer; }
 .hint, .note { margin: 8px 0 0; color: var(--wm-gray); font-size: 13px; } /* design code: hint 13 */
+/* "?" by a question heading: a fuller explanation that opens under the heading (question "more") */
+.q-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+.q .q-head h3 { margin: 0; }
+.more-btn {
+  flex: 0 0 auto;
+  width: var(--wm-tap);
+  height: var(--wm-tap);
+  margin: -10px -9px -10px 0; /* the tap area is 44 px, the circle 26 px: keep the heading row its own height */
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.more-btn span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--wm-teal-deep);
+  background: var(--wm-white);
+  color: var(--wm-teal-deep);
+  font: 700 15px/23px var(--wm-font);
+  text-align: center;
+}
+.more-btn[aria-expanded="true"] span { background: var(--wm-teal-deep); color: var(--wm-white); }
+.more-btn:focus-visible span { outline: 2px solid var(--wm-teal-deep); outline-offset: 2px; }
+.more-panel { margin: 4px 0 12px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--wm-teal-line); background: var(--wm-white); font-size: 14px; } /* outlined, not tinted: it must not read as one more answer */
+.more-panel[hidden] { display: none; }
+.more-panel p { margin: 0; }
+.more-panel p + p { margin-top: 8px; }
 .note-block { margin-top: 24px; }
 .note-block p { margin: 8px 0 0; }
 .note-card { margin-top: 28px; padding: 20px; } /* step-level notes ("kind": "note"): info card, teal tint, radius 16 */
@@ -435,7 +466,7 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
    Gray page instead of white, a dark strip under the logo; the header with the logo stays white. */
 body.internal { background: var(--wm-internal-page); }
 .internal .app { background: var(--wm-internal-sheet); }
-.internal-strip { margin: var(--logo-h) -20px 0; padding: 12px 20px 12px; background: var(--wm-internal-strip); color: var(--wm-white); }
+.internal-strip { margin: var(--logo-gap) -20px 0; padding: 12px 20px 12px; background: var(--wm-internal-strip); color: var(--wm-white); }
 .internal-strip p { margin: 0; }
 .internal-label { font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
 .internal-text { font-size: 15px; line-height: 1.4; }
@@ -533,12 +564,14 @@ body.zoom-open { overflow: hidden; }
 .figure.hero-top { margin: 4px 0 20px; }
 .figure.hero-mid { margin: 16px 0 8px; }
 
-/* Logo clear space in logo heights (L = logo height): one L above the logo and one L under it, to the progress line. */
-:root { --logo-h: 26px; }
+/* Logo as on wllmd.com at phone width (measured 2026-11-19 at 390 px: 140 x 14.5 px, 23 px above and under it).
+   Clear space in logo heights (L = logo height): 1.5 L above the logo and under it, to the progress line
+   (the site has about 1.6 L; the design code minimum is 1 L). */
+:root { --logo-h: 14.5px; --logo-gap: calc(var(--logo-h) * 1.5); }
 .brand img { height: var(--logo-h); }
-.top { padding-top: var(--logo-h); }
-.progress { margin-top: var(--logo-h); }
-.nolink .top { padding-bottom: var(--logo-h); }
+.top { padding-top: var(--logo-gap); }
+.progress { margin-top: var(--logo-gap); }
+.nolink .top { padding-bottom: var(--logo-gap); }
 
 /* On scroll the logo and progress line slide away; the step buttons stay (top = minus the part above them, set by engine/app.js). */
 .top { top: calc(-1 * var(--top-hide, 0px)); }
@@ -554,14 +587,15 @@ body.zoom-open { overflow: hidden; }
 .q-lead { margin: 0 0 12px; color: var(--wm-ink); font-size: 16px; }
 
 /* Cover: the first screen. Logo, photo, greeting, two sentences, one button. No steps, no bottom bar. */
-.on-cover .top { position: static; padding-bottom: var(--logo-h); border-bottom: 0; }
+.on-cover .top { position: static; padding-bottom: var(--logo-gap); border-bottom: 0; }
 .on-cover main { padding: 0 20px 40px; }
 .cover-photo { margin: 0; }
 .cover-photo img { display: block; width: 100%; height: auto; border-radius: var(--wm-radius-photo); }
 .cover-photo figcaption { margin-top: 8px; color: var(--wm-gray); font-size: 13px; }
-.cover-hello { margin: 28px 0 0; color: var(--wm-teal); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
-.cover .wm-h2 { margin: 8px 0 0; }
+.cover .wm-h2 { margin: 28px 0 0; }
+.cover-hello { margin: 16px 0 0; font-size: 16px; } /* plain text: the opening line of a letter, not a label */
 .cover-text { margin: 16px 0 0; font-size: 16px; }
+.cover-hello + .cover-text { margin-top: 4px; }
 .cover-contact { margin-top: 28px; padding: 16px 20px; border: 1px solid var(--wm-teal-line); border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); }
 .cover-contact-text { margin: 0; font-size: 15px; }
 .cover-ways { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 12px 0 0; }

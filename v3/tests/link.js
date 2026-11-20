@@ -118,7 +118,7 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
     await openForm(b, link1);
     // 2.5.0: a link opens on the cover, greeting the client by the name the link carries.
     ok(await b.ev('T.onCover() && document.getElementById("app").classList.contains("on-cover")'), 'form from link 1 opens on the cover');
-    ok(await b.ev('(document.querySelector(".cover-hello")||{}).textContent') === "Hello, Jane O'Brien", 'cover greets the client from the link: Hello, Jane O\'Brien');
+    ok(await b.ev('(document.querySelector(".cover-hello")||{}).textContent') === "Hello Jane O'Brien,", 'cover greets the client from the link: Hello Jane O\'Brien,');
     ok(await b.ev('document.getElementById("banner").hidden'), 'no banner for a good link');
     ok(await b.ev(`localStorage.getItem("spec-form-v2:presidio-xo:link:${id1}") !== null`), 'answers saved under the link id key');
     ok(await b.ev('document.documentElement.scrollWidth') <= 390, 'form from link (cover): no overflow');
@@ -143,7 +143,7 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
 
     // ---- link 2 on the same device: separate answers ------------------------------
     await openForm(b, link2);
-    ok(await b.ev('T.onCover() && (document.querySelector(".cover-hello")||{}).textContent === "Hello, Bob Lee"'), 'link 2 (new on this device): cover, Hello, Bob Lee');
+    ok(await b.ev('T.onCover() && (document.querySelector(".cover-hello")||{}).textContent === "Hello Bob Lee,"'), 'link 2 (new on this device): cover, Hello Bob Lee,');
     await b.ev('T.go("review")'); await sleep(200); await b.ev(HELP);
     ok(J(await fieldValues(b)) === J({ client: 'Bob Lee', address: '7 Oak Ave, Hayward', phone: '' }), 'form from link 2: Bob Lee filled, phone empty');
     await b.ev('T.go("permits")'); await sleep(200); await b.ev(HELP);
@@ -191,7 +191,7 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
     await b.ev('window.confirm=()=>true; document.querySelector("[data-action=reset]").click(); true'); await sleep(300); await b.ev(HELP);
     const rs = await b.ev(`(()=>{const s=JSON.parse(localStorage.getItem("spec-form-v2:presidio-xo:link:${id1}")); return {client:s.answers.client, permits:s.answers.permits, stain:s.answers.stain, linkId:s.linkId};})()`);
     ok(rs.client === "Jane O'Brien" && J(rs.permits) === '[]' && rs.stain === null && rs.linkId === id1, 'Start a new form on a link: answers cleared, link details back: ' + J(rs));
-    ok(await b.ev('T.onCover() && (document.querySelector(".cover-hello")||{}).textContent === "Hello, Jane O\'Brien"'), 'Start a new form on a link: back to the cover, greeting with the link name');
+    ok(await b.ev('T.onCover() && (document.querySelector(".cover-hello")||{}).textContent === "Hello Jane O\'Brien,"'), 'Start a new form on a link: back to the cover, greeting with the link name');
     pageErrors.push(...b.exceptions());
     ok(pageErrors.length === 0, 'form: no exceptions on any open ' + J(pageErrors));
   } catch (e) { log.push('FAIL exception ' + e.stack); fails++; }

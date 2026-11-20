@@ -50,7 +50,9 @@ STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showMo
 # emptyText = what Review shows when the question is left empty (instead of "None" / "Not answered").
 # A question with emptyText may be left empty on purpose: the client is not reminded that it is open,
 # but the sent data still lists it as unanswered, so the manager sees it.
-COMMON_Q = {"id", "kind", "label", "hint", "note", "optional", "lead", "ask", "hideLabel", "card", "emptyText"}
+# more = the "?" by the heading: {"label", "text": [paragraphs]}, a fuller explanation that opens
+# under the heading. It adds to the form; a text the client must read stays in hint / intro.
+COMMON_Q = {"id", "kind", "label", "hint", "note", "optional", "lead", "ask", "hideLabel", "card", "emptyText", "more"}
 ITEM_KEYS = {
     "text": COMMON_Q | {"autocomplete", "inputmode", "suffix"},
     "lines": COMMON_Q,
@@ -146,6 +148,19 @@ class Checker:
             self.err(where, '"%s" must be a number, 0 or more (the price in prices.unit)' % key)
         else:
             self.priced.append(where)
+
+    def check_more(self, item, kind, where):
+        more, mw = item["more"], where + " > more"
+        if kind not in ("single", "multi") or item.get("hideLabel"):
+            self.err(mw, 'the "?" sits by a visible heading: "more" works on "single" and "multi" questions without "hideLabel"')
+        if not isinstance(more, dict):
+            self.err(mw, '"more" must be an object: {"label": "...", "text": ["paragraph", ...]}')
+            return
+        self.keys(more, {"label", "text"}, mw)
+        self.need_str(more, "label", mw, required=False)
+        text = more.get("text")
+        if not isinstance(text, list) or not text or not all(isinstance(t, str) and t.strip() for t in text):
+            self.err(mw, '"text" must be a list of non-empty paragraphs')
 
     def need_bool(self, obj, key, where):
         if key in obj and not isinstance(obj[key], bool):
@@ -350,6 +365,8 @@ class Checker:
                     self.need_str(item, "text", where)
                     continue
                 self.need_str(item, "label", where)
+                if "more" in item:
+                    self.check_more(item, kind, where)
                 self.need_bool(item, "optional", where)
                 self.need_bool(item, "showCount", where)
                 if iid:

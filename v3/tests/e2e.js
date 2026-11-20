@@ -23,14 +23,18 @@ async function run390() {
     const COVER = `(()=>{const m=document.querySelector("main"); return {cover:document.getElementById("app").classList.contains("on-cover"),
       starts:document.querySelectorAll("[data-action=start]").length, startCls:(document.querySelector("[data-action=start]")||{}).className||"",
       startText:(document.querySelector("[data-action=start]")||{}).textContent, jumps:document.querySelectorAll(".step-jump").length, bar:document.querySelectorAll(".bar").length,
-      hello:(document.querySelector(".cover-hello")||{textContent:null}).textContent, title:(document.getElementById("step-title")||{}).textContent,
+      hello:(document.querySelector(".cover-hello")||{textContent:null}).textContent,
+      helloAfterTitle:(()=>{const e=document.querySelector(".cover-hello"), t=document.getElementById("step-title"); return !!(e&&t&&t.nextElementSibling===e);})(),
+      helloStyle:(()=>{const e=document.querySelector(".cover-hello"); if(!e) return null; const s=getComputedStyle(e), p=getComputedStyle(document.querySelector(".cover-text")); return s.textTransform==="none"&&s.color===p.color&&s.fontSize===p.fontSize;})(),
+      title:(document.getElementById("step-title")||{}).textContent,
       texts:[...document.querySelectorAll(".cover-text")].map(p=>p.textContent), logo:!!document.querySelector(".top .brand img"),
       photo:(document.querySelector(".cover-photo img")||{}).getAttribute?document.querySelector(".cover-photo img").getAttribute("src"):null,
       buttons:m?m.querySelectorAll("button").length:0, w:document.documentElement.scrollWidth};})()`;
-    // with a link name: "Hello, <name>"
+    // with a link name: "Hello <name>," as the first line of the text, right under the title
     await b.nav(url + '#id=E2eCoverTest0001&name=Ann%20Lee&address=1%20Test%20St'); await b.ev('localStorage.clear();true'); await b.reload(); await b.ev(HELP);
     let cv = await b.ev(COVER);
-    ok(cv.cover && cv.hello === 'Hello, Ann Lee', 'cover from a link greets the client: ' + cv.hello);
+    ok(cv.cover && cv.hello === 'Hello Ann Lee,', 'cover from a link greets the client: ' + cv.hello);
+    ok(cv.helloAfterTitle && cv.helloStyle === true, 'the greeting is plain text right under the title, same look as the paragraphs (not a label in capitals)');
     ok(b.exceptions().length === 0, 'cover from a link: no page errors ' + J(b.exceptions()));
     // the plain form, fresh: cover without a greeting
     await b.nav(url); await b.ev('localStorage.clear();true'); await b.reload(); await b.ev(HELP);
