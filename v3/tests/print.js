@@ -30,15 +30,12 @@ const S_VERSION = JSON.parse(fs.readFileSync(path.join(PILOT, 'spec/presidio-xo.
     ok(ps.permits === 'Left empty: your manager will contact you', 'print: empty permits row reads "Left empty: your manager will contact you"');
     const pdf = await b.send('Page.printToPDF', {});
     fs.writeFileSync(path.join(OUT, 'print.pdf'), Buffer.from(pdf.result.data, 'base64'));
-    await b.ev('document.querySelector("[data-action=download]").click();true'); await sleep(1500);
-    const dl = fs.existsSync(path.join(OUT, 'dl')) ? fs.readdirSync(path.join(OUT, 'dl')) : [];
-    console.log('downloads:', dl);
-    ok(J(dl) === J(['Jane-Test-presidio-xo-spec.json']), 'download file name from the client name');
-    if (dl[0]) {
-      const j = JSON.parse(fs.readFileSync(path.join(OUT, 'dl', dl[0]), 'utf8'));
-      console.log('downloaded specId/version:', j.specId, j.specVersion, 'client:', j.answers.client);
-      ok(j.specId === 'presidio-xo' && j.specVersion === S_VERSION && j.answers.client === 'Jane Test', 'downloaded JSON: specId, specVersion, client');
-      ok(j.openQuestions.some(o => o.id === 'permits'), 'downloaded JSON: empty permits still listed in openQuestions');
+    ok(await b.ev('document.querySelectorAll(".keep-copy, [data-action=download], [data-action=print]").length') === 0, 'Review: no Keep a copy block, no Print, no Download JSON (0.3.7)');
+    {
+      const j = await b.ev('__specFormExport()');
+      console.log('export specId/version:', j.specId, j.specVersion, 'client:', j.answers.client);
+      ok(j.specId === 'presidio-xo' && j.specVersion === S_VERSION && j.answers.client === 'Jane Test', 'export: specId, specVersion, client');
+      ok(j.openQuestions.some(o => o.id === 'permits'), 'export: empty permits still listed in openQuestions');
     }
     console.log('exceptions:', J(b.exceptions()));
     ok(b.exceptions().length === 0, 'no page exceptions');

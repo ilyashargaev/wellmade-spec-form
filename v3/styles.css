@@ -513,9 +513,6 @@ body.internal { background: var(--wm-internal-page); }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
 .send-off { margin-top: 16px; }
-.keep-copy { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--wm-teal-line); }
-.keep-copy-btns { display: flex; gap: 12px; }
-.keep-copy-btns .wm-btn { flex: 1; min-width: 0; }
 .sent-mark { width: 56px; height: 56px; border-radius: 50%; background: var(--wm-teal); color: var(--wm-white); display: grid; place-items: center; font-size: 30px; margin: 8px 0 16px; }
 .sent-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 20px 0 0; padding: 16px 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); font-size: 15px; }
 .sent-facts dt { color: var(--wm-gray); }

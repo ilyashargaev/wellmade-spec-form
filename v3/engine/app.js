@@ -103,7 +103,9 @@
       }));
       if (storageNote) { storageNote = ""; paintBanner(); }
     } catch (err) {
-      storageNote = "Answers are not being kept on this device. Download the JSON before you leave.";
+      storageNote = SEND_URL
+        ? "Answers are not being kept on this device. Finish and send the form before you close this page."
+        : "Answers are not being kept on this device. Download the JSON before you leave.";
       paintBanner();
     }
   }
@@ -744,18 +746,10 @@
       });
     });
     priceRows(box);
-    if (SEND_URL) {
-      box.appendChild(h("div", { class: "keep-copy" }, [
-        h("h3", { class: "wm-h3", text: "Keep a copy" }),
-        h("div", { class: "keep-copy-btns" }, [
-          h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "print", text: "Print" }),
-          h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "download", text: "Download JSON" })
-        ])
-      ]));
-    }
+    // 0.3.7: with sending set up the client is offered no copy to keep (no Print, no Download JSON): the answers go to the manager.
     box.appendChild(h("div", { class: "reset" }, [
       h("button", { type: "button", class: "wm-btn wm-btn--secondary reset-btn", "data-action": "reset", text: "Start a new form" }),
-      h("p", { class: "hint", text: "Clears every answer on this device. Download the JSON first if you need it." })
+      h("p", { class: "hint", text: SEND_URL ? "Clears every answer on this device." : "Clears every answer on this device. Download the JSON first if you need it." })
     ]));
     return box;
   }
@@ -1016,7 +1010,6 @@
     var back = h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "back", text: "Back" });
     if (idx === 0) back.disabled = true;
     if (state.view === "sent") {
-      inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "download", text: "Download JSON" }));
       inner.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary", "data-action": "goto", "data-step": step.id, text: "Back to my answers" }));
     } else if (step.kind === "review" && SEND_URL) {
       inner.appendChild(back);
@@ -1198,7 +1191,7 @@
     if (kind === "timeout") return ORG + " did not answer in time. Press Retry; if it happens again, try a little later.";
     if (kind === "rate_limited") return "Too many sends from this link for now. Please try again in an hour.";
     if (kind === "http") return ORG + "’s server had a problem (HTTP " + detail + "). Press Retry.";
-    if (kind === "refused") return ORG + "’s server did not accept the answers (" + detail + "). Press Retry; if it happens again, download the JSON and email it.";
+    if (kind === "refused") return ORG + "’s server did not accept the answers (" + detail + "). Press Retry; if it happens again, contact your manager.";
     return ORG + "’s server gave an unexpected reply. Press Retry.";
   }
 
@@ -1310,7 +1303,7 @@
     main.appendChild(h("p", { class: "note", id: "sent-again", text: LINK
       ? "You can reopen this same link, change answers and send again — the latest one counts."
       : "You can come back to this page, change answers and send again — the latest one counts." }));
-    main.appendChild(h("p", { class: "hint", text: "Your answers stay saved on this device. Download JSON keeps a copy for you." }));
+    main.appendChild(h("p", { class: "hint", text: "Your answers stay saved on this device." }));
   }
 
   // ---- events ---------------------------------------------------------------

@@ -110,11 +110,9 @@ const TOTAL = DECK + SOL + EXT + INT;
     const pr = await b.ev('({rows: document.querySelectorAll("#print-sheet .price-row:not(.price-total)").length, sum: (document.querySelector("#print-sheet .price-sum")||{}).textContent, note: !!document.querySelector("#print-sheet .price-note")})');
     ok(pr.rows === 4 && pr.sum === money(TOTAL) && pr.note, 'print sheet: the same four rows, total and note: ' + J(pr));
 
-    await b.ev('document.querySelector("[data-action=download]").click();true'); await sleep(1500);
-    const dir = path.join(OUT, 'dl-prices'), dl = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
-    ok(dl.length === 1, 'one downloaded file: ' + J(dl));
-    if (dl[0]) {
-      const j = JSON.parse(fs.readFileSync(path.join(dir, dl[0]), 'utf8'));
+    ok(await b.ev('document.querySelectorAll("[data-action=download]").length') === 0, 'Review: no Download JSON button (0.3.7)');
+    {
+      const j = await b.ev('__specFormExport()');
       console.log('export pricing:', J(j.pricing));
       ok(j.pricing && j.pricing.unit === U && j.pricing.total === TOTAL && j.pricing.items.length === 4, 'export carries pricing: unit, total, four items');
       ok(J(j.pricing.items.map(x => x.question + '/' + x.option).sort()) === J(['deckConfig/standard', 'exterior/back-left', 'interior/left-upper', 'skylightType/solar']), 'export items are the four priced picks');

@@ -180,10 +180,7 @@ const fieldValues = b => b.ev('({client: document.getElementById("f-client").val
     const ex = await b.ev('__specFormExport()');
     ok(ex.linkId === id1 && ex.specVersion === SPEC.specVersion && ex.answers.client === "Jane O'Brien-Smith", 'export: linkId ' + ex.linkId + ', specVersion ' + ex.specVersion);
     await b.ev('T.go("review")'); await sleep(300);
-    await b.ev('document.querySelector("[data-action=download]").click();true'); await sleep(1500);
-    const dl = fs.readdirSync(path.join(OUT, 'dl-link')).filter(f => f.endsWith('.json'));
-    const dj = dl.length ? JSON.parse(fs.readFileSync(path.join(OUT, 'dl-link', dl[dl.length - 1]), 'utf8')) : {};
-    ok(dj.linkId === id1 && dj.specVersion === SPEC.specVersion, 'downloaded JSON ' + dl[dl.length - 1] + ' has linkId and specVersion');
+    ok(await b.ev('document.querySelectorAll("[data-action=download], [data-action=print]").length') === 0, 'Review: no Download JSON and no Print button (0.3.7)');
     await b.ev('window.dispatchEvent(new Event("beforeprint"));true');
     ok((await b.ev('[...document.querySelectorAll("#print-sheet .meta")].map(e=>e.textContent).join(" ")')).includes('Link ' + id1), 'print sheet names the link id');
 

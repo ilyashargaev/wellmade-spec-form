@@ -158,7 +158,7 @@ async function toReview(b) { await b.ev('T.go("review")'); await sleep(300); awa
     await b.ev('T.type("phone","(510) 555-0111")');
     let s = await b.ev(SENDSTATE);
     ok(s.btn === 'Send to Wellmade' && !s.btnDisabled && /Ready to send/.test(s.title), 'Review: Send to Wellmade in the bar, "Ready to send?" panel');
-    ok(await b.ev('document.querySelectorAll(".keep-copy [data-action=print], .keep-copy [data-action=download]").length') === 2, 'Review: Print and Download JSON kept (Keep a copy)');
+    ok(await b.ev('document.querySelectorAll(".keep-copy, [data-action=print], [data-action=download]").length') === 0, 'Review: no Keep a copy block, no Print, no Download JSON (0.3.7)');
     ok(await b.ev('document.documentElement.scrollWidth') <= 390, 'Review: no horizontal overflow');
     await b.shot(path.join(SHOTS, '390-review-send.png'));
     ok(mock.posts.length === 0 && mock.preflights === 0, 'nothing sent before the button (receiver saw 0 requests)');
