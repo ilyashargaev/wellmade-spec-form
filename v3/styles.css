@@ -129,6 +129,46 @@ main { padding: 20px 20px 132px; }
 .more-panel p + p { margin-top: 8px; }
 .note-block { margin-top: 24px; }
 .note-block p { margin: 8px 0 0; }
+.note-block .more-panel p { margin: 0; }
+.note-block .more-panel p + p { margin-top: 8px; }
+/* "!" by a heading: a note from the developer to the builder's team (only in links with notes=1) */
+.team-btn span { border-color: #d9a441; background: #fff8e8; color: #8a5a00; }
+.team-btn[aria-expanded="true"] span { background: #d9a441; color: var(--wm-white); }
+.team-btn:focus-visible span { outline-color: #8a5a00; }
+.team-note { border-color: #ecd9a8; background: #fffaf0; }
+.team-note .team-title { font-weight: 600; }
+.team-note .team-sign { color: var(--wm-gray); }
+/* "?" by a tag without a list price: a tap shows one sentence in a bubble */
+.tag-q { display: inline-flex; align-items: center; gap: 6px; cursor: help; }
+.choice .tag-q { flex: 0 0 auto; }
+.photo .tag-q { margin-top: 8px; }
+.photo .tag-q .wm-tag { margin-top: 0; }
+.tag-q-mark {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.5px solid var(--wm-teal-deep);
+  background: var(--wm-white);
+  color: var(--wm-teal-deep);
+  font: 700 11px/15px var(--wm-font);
+  text-align: center;
+}
+.tag-tip {
+  position: absolute;
+  z-index: 30;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--wm-teal-line);
+  background: var(--wm-white);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  color: var(--wm-ink);
+  font-size: 14px;
+  line-height: 1.4;
+}
+@media print { .tag-q-mark, .tag-tip, .team-btn, .team-note { display: none; } }
 .note-card { margin-top: 28px; padding: 20px; } /* step-level notes ("kind": "note"): info card, teal tint, radius 16 */
 
 .field { display: block; margin-top: 8px; }

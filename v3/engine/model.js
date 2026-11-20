@@ -526,6 +526,9 @@
   // the link carries digits only. Anything else reads as 0 = no price, and the form then
   // shows only the prices of the extras. Anyone can edit a link, so it is checked again when read.
   var LINK_PRICE_PARAM = "price";
+  // "notes=1": a link for the builder's own team; the form then shows the team notes (spec "teamNotes").
+  // Links made on the manager page never carry it, so a client does not see them.
+  var LINK_NOTES_PARAM = "notes";
   function cleanPrice(v) {
     var s = cleanLinkValue(v).replace(/[$,\s]/g, "").replace(/\.\d{1,2}$/, "");
     if (!/^\d{1,8}$/.test(s)) return 0;
@@ -609,7 +612,7 @@
     // Recipients are passed on as the link has them (cleaned, capped); the receiver decides.
     var recipients = LINK_TO_PARAM in p ? parseRecipients(String(p[LINK_TO_PARAM]).slice(0, 3000)).slice(0, RECIPIENTS_MAX * 2) : [];
     var manager = cleanManager({ name: p[LINK_MANAGER_PARAMS.name], email: p[LINK_MANAGER_PARAMS.email], book: p[LINK_MANAGER_PARAMS.book] });
-    return { id: p.id, values: values, recipients: recipients, manager: manager, price: cleanPrice(p[LINK_PRICE_PARAM]) };
+    return { id: p.id, values: values, recipients: recipients, manager: manager, price: cleanPrice(p[LINK_PRICE_PARAM]), notes: p[LINK_NOTES_PARAM] === "1" };
   }
 
   global.SpecEngine = {
@@ -618,6 +621,6 @@
     LINK_TO_PARAM: LINK_TO_PARAM, RECIPIENTS_MAX: RECIPIENTS_MAX,
     parseRecipients: parseRecipients, checkRecipients: checkRecipients,
     LINK_MANAGER_PARAMS: LINK_MANAGER_PARAMS, cleanManager: cleanManager, bookUrl: bookUrl,
-    LINK_PRICE_PARAM: LINK_PRICE_PARAM, cleanPrice: cleanPrice
+    LINK_PRICE_PARAM: LINK_PRICE_PARAM, cleanPrice: cleanPrice, LINK_NOTES_PARAM: LINK_NOTES_PARAM
   };
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -37,13 +37,14 @@ LAYOUTS = {"photos", "drawings"}
 FIGURE_LAYOUTS = {"product", "product wide"}
 
 TOP_KEYS = {"specId", "specVersion", "formName", "title", "pageTitle", "model", "modelNote",
-            "sources", "brand", "download", "link", "plans", "preview", "cover", "prices", "steps", "rules"}
+            "sources", "brand", "download", "link", "plans", "preview", "cover", "prices", "teamNotes", "steps", "rules"}
 COVER_KEYS = {"image", "alt", "caption", "hello", "title", "text", "priceText", "contact", "invite", "button"}
 COVER_CONTACT_KEYS = {"text", "textNamed", "email", "phone", "bookLabel"}
 LINK_PARAM_RE = re.compile(r"^[a-z][a-z0-9]*$")
 # the link id travels as "id", the result recipients as "to", the manager's name, email and booking link as "mgr", "mgremail", "book",
 # the studio price from the quote as "price"
-LINK_RESERVED = {"id", "to", "mgr", "mgremail", "book", "price"}
+# and "notes" marks a link for the builder's own team (shows the team notes)
+LINK_RESERVED = {"id", "to", "mgr", "mgremail", "book", "price", "notes"}
 STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "heroLayout", "items",
              "detailsTitle", "detailsHint"}
 # lead = a sentence before the question; ask = the heading shown instead of the label;
@@ -53,7 +54,7 @@ STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showMo
 # but the sent data still lists it as unanswered, so the manager sees it.
 # more = the "?" by the heading: {"label", "text": [paragraphs]}, a fuller explanation that opens
 # under the heading. It adds to the form; a text the client must read stays in hint / intro.
-COMMON_Q = {"id", "kind", "label", "hint", "note", "optional", "lead", "ask", "hideLabel", "card", "emptyText", "more"}
+COMMON_Q = {"id", "kind", "label", "hint", "note", "optional", "lead", "ask", "hideLabel", "card", "emptyText", "more", "teamNote"}
 ITEM_KEYS = {
     "text": COMMON_Q | {"autocomplete", "inputmode", "suffix"},
     "lines": COMMON_Q,
@@ -229,7 +230,8 @@ class Checker:
             if not isinstance(prices, dict):
                 self.err("prices", 'must be an object like {"unit": "USD", "note": "..."}')
             else:
-                self.keys(prices, {"unit", "symbol", "note", "quoteTags", "estimate"}, "prices")
+                self.keys(prices, {"unit", "symbol", "note", "quoteTags", "quoteHelp", "estimate"}, "prices")
+                self.need_str(prices, "quoteHelp", "prices", required=False)
                 self.need_str(prices, "unit", "prices")
                 self.need_str(prices, "symbol", "prices", required=False)
                 self.need_str(prices, "note", "prices", required=False)
@@ -248,6 +250,27 @@ class Checker:
                         self.need_str(est, "note", "prices.estimate")
                         for k in ("title", "baseLabel", "unpricedLabel", "unpricedShort"):
                             self.need_str(est, k, "prices.estimate", required=False)
+
+        # teamNotes: notes from the developer to the builder's team, shown only in links with notes=1.
+        self.team_notes = {}
+        tn = spec.get("teamNotes")
+        if tn is not None:
+            if not isinstance(tn, dict):
+                self.err("teamNotes", 'must be an object: {"<note id>": {"title": "...", "text": ["paragraph", ...]}}')
+            else:
+                for nid, note in tn.items():
+                    nw = "teamNotes > %s" % nid
+                    if not isinstance(note, dict):
+                        self.err(nw, "must be an object")
+                        continue
+                    self.keys(note, {"label", "title", "text", "sign"}, nw)
+                    self.need_str(note, "title", nw)
+                    for k in ("label", "sign"):
+                        self.need_str(note, k, nw, required=False)
+                    txt = note.get("text")
+                    if not (isinstance(txt, list) and txt and all(isinstance(t, str) and t.strip() for t in txt)):
+                        self.err(nw, '"text" must be a list of paragraphs')
+                    self.team_notes[nid] = True
 
         cover = spec.get("cover")
         if cover is not None:
@@ -421,13 +444,20 @@ class Checker:
                     self.err(where + " > plan", '"shape" must be one of: %s' % ", ".join(sorted(SHAPES)))
         if "layout" in item and item["layout"] not in LAYOUTS:
             self.err(where, '"layout" must be one of: %s' % ", ".join(sorted(LAYOUTS)))
+        if "teamNote" in item:
+            if item["teamNote"] not in self.team_notes:
+                self.err(where, '"teamNote": no note "%s" in the top-level "teamNotes"' % item["teamNote"])
+            elif item.get("hideLabel"):
+                self.err(where, '"teamNote": the "!" sits by a visible heading, this question has "hideLabel"')
         groups = {}
         for gi, g in enumerate(item.get("groups", []) if isinstance(item.get("groups", []), list) else []):
             gw = "%s > groups[%d]" % (where, gi)
             if not isinstance(g, dict):
                 self.err(gw, "must be an object")
                 continue
-            self.keys(g, {"id", "title", "text"}, gw)
+            self.keys(g, {"id", "title", "text", "teamNote"}, gw)
+            if "teamNote" in g and g["teamNote"] not in self.team_notes:
+                self.err(gw, '"teamNote": no note "%s" in the top-level "teamNotes"' % g["teamNote"])
             gid = self.need_id(g, gw)
             self.need_str(g, "title", gw)
             if gid in groups:

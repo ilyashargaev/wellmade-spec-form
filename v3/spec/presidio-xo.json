@@ -1,6 +1,6 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "0.3.7",
+  "specVersion": "0.3.8",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
@@ -75,6 +75,7 @@
     "symbol": "$",
     "note": "List prices of the extras you picked, installed. The price of the studio itself is in your quote. Your manager confirms the final total.",
     "quoteTags": ["Additional cost", "Custom quote", "Priced by size"],
+    "quoteHelp": "Your manager will send you the price after you send your choices.",
     "estimate": {
       "label": "Estimate",
       "title": "Your estimate",
@@ -107,6 +108,17 @@
     "button": "Let's start"
   },
 
+  "teamNotes": {
+    "deckPrice": {
+      "label": "Note for the Wellmade team",
+      "title": "Note for the Wellmade team. Clients do not see this.",
+      "text": [
+        "Ian, Alonika, Kirill: I do not like that this price is missing. I think the form can calculate it right here. The client picks the boards and the deck size (A and B, within sensible limits), and your formula gives the price. The same formula can price the floor change.",
+        "Let's discuss it; the next internal version will show how it works."
+      ],
+      "sign": "Ilya"
+    }
+  },
   "steps": [
     {
       "id": "finishes", "title": "Finishes", "short": "Finishes",
@@ -127,10 +139,10 @@
           "groups": [
             { "id": "trex-select", "title": "Trex Select series",
               "text": "Durable composite decking with a subtle woodgrain texture. Included when a deck is selected." },
-            { "id": "trex-transcend", "title": "Trex Transcend series",
-              "text": "Enhanced woodgrain texture, richer colours and thicker deck boards. Additional cost." },
-            { "id": "timbertech", "title": "TimberTech decking",
-              "text": "Premium composite decking with distinctive woodgrain textures and rich colour variations. Additional cost." }
+            { "id": "trex-transcend", "title": "Trex Transcend series", "teamNote": "deckPrice",
+              "text": "Enhanced woodgrain texture, richer colours and thicker deck boards. Additional cost. Your manager will send you the price after you send your choices." },
+            { "id": "timbertech", "title": "TimberTech decking", "teamNote": "deckPrice",
+              "text": "Premium composite decking with distinctive woodgrain textures and rich colour variations. Additional cost. Your manager will send you the price after you send your choices." }
           ],
           "options": [
             { "id": "trex-select-pebble-grey", "group": "trex-select", "label": "Trex Select – Pebble Grey", "tag": "Included",
@@ -148,7 +160,8 @@
             { "id": "custom", "label": "Custom decking", "color": null }
           ] },
         { "id": "deckConfig", "kind": "single", "layout": "drawings", "label": "Deck configuration",
-          "lead": "Then the shape of the deck.",
+          "lead": "Then the shape of the deck.", "teamNote": "deckPrice",
+          "hint": "A custom corner deck is priced by size. Your manager will send you the price after you send your choices.",
           "options": [
             { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
             { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 6900 },
@@ -217,7 +230,7 @@
       "intro": "By default Wellmade installs a 125 amp, 2 circuit breaker box 5 ft above the ground, one exterior outlet right under it, and 3 interior outlets 18\" above the floor. Below you choose the connection and where everything goes.",
       "items": [
         { "id": "connection", "kind": "multi", "label": "Connection",
-          "hint": "Choose plug-in or hardline. Add Ethernet or third-party work if you need them. The Ethernet price applies together with a hardline connection.",
+          "hint": "Choose plug-in or hardline. Add Ethernet or third-party work if you need them. The Ethernet price applies together with a hardline connection. Hardline is a custom quote: your manager will send you the price after you send your choices.",
           "options": [
             { "id": "plug-in", "label": "Plug-in electrical connection", "tag": "Included" },
             { "id": "hardline", "label": "Hardline connection from main panel", "tag": "Custom quote" },

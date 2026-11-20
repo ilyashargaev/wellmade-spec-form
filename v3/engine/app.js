@@ -139,13 +139,14 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
 
   // ---- option buttons -------------------------------------------------------
+  var moreOpen = {}; // open "?" and "!" panels, by id (this visit only)
   function choiceButton(q, opt) {
     var st = M.optionState(q.id, opt.id, state.answers);
     var kids = [h("span", { text: opt.label })];
     if (st.dynamicTag || st.tag) {
       var tag = h("span", { class: "wm-tag", text: st.tag });
       if (!st.tag) tag.hidden = true;
-      kids.push(tag);
+      kids.push(quoteTag(st, tag));
     }
     return h("button", {
       type: "button",
@@ -172,8 +173,61 @@
       h("span", { class: "badge", "aria-hidden": "true", text: "✓" }),
       h("img", { src: opt.image, alt: "", "aria-hidden": "true" }),
       h("span", { class: "name", text: opt.label }),
-      st.tag ? h("span", { class: "wm-tag", text: st.tag }) : null
+      st.tag ? quoteTag(st, h("span", { class: "wm-tag", text: st.tag })) : null
     ]);
+  }
+
+  // A tag that means "costs extra, no list price" (prices.quoteTags) gets a small "?" next to it.
+  // A tap on the tag or the "?" shows prices.quoteHelp in a bubble and does not pick the option.
+  // The same sentence is written in the text of the series or question, so nobody depends on the bubble.
+  var QUOTE_TAGS = (SPEC.prices && SPEC.prices.quoteTags) || [];
+  var QUOTE_HELP = (SPEC.prices && SPEC.prices.quoteHelp) || "";
+  function quoteTag(st, tag) {
+    if (!QUOTE_HELP || st.dynamicTag || QUOTE_TAGS.indexOf(st.tag) < 0) return tag;
+    return h("span", { class: "tag-q" }, [tag, h("span", { class: "tag-q-mark", "aria-hidden": "true", text: "?" })]);
+  }
+  var tipFor = null;
+  function closeTip() {
+    var t = document.getElementById("tag-tip");
+    if (t) t.parentNode.removeChild(t);
+    tipFor = null;
+  }
+  function toggleTip(anchor) {
+    if (tipFor === anchor) { closeTip(); return; }
+    closeTip();
+    var tip = h("div", { class: "tag-tip", id: "tag-tip", role: "status", text: QUOTE_HELP });
+    document.body.appendChild(tip);
+    var r = anchor.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth;
+    var w = Math.min(280, vw - 24);
+    tip.style.width = w + "px";
+    tip.style.left = (Math.max(12, Math.min(r.left, vw - w - 12)) + window.scrollX) + "px";
+    var bar = app.querySelector(".bar");
+    var limit = bar ? bar.getBoundingClientRect().top : window.innerHeight;
+    var below = r.bottom + 8 + tip.offsetHeight <= limit;
+    tip.style.top = ((below ? r.bottom + 8 : r.top - 8 - tip.offsetHeight) + window.scrollY) + "px";
+    tipFor = anchor;
+  }
+  window.addEventListener("resize", closeTip);
+
+  // Notes from the developer to the builder's team (spec "teamNotes"): a soft "!" by a heading that
+  // opens the note under it. Shown only when the link carries notes=1; a client's link never does.
+  var TEAM_NOTES = LINK && LINK.notes && SPEC.teamNotes ? SPEC.teamNotes : null;
+  function teamNote(owner) { return TEAM_NOTES && owner && owner.teamNote ? TEAM_NOTES[owner.teamNote] || null : null; }
+  function teamParts(key, note) {
+    var id = "team-" + key, open = !!moreOpen[id];
+    var btn = h("button", {
+      type: "button", class: "more-btn team-btn", "data-action": "more", "data-qid": id,
+      "aria-expanded": open ? "true" : "false", "aria-controls": "more-" + id,
+      "aria-label": note.label || "Note for the team"
+    }, [h("span", { "aria-hidden": "true", text: "!" })]);
+    var kids = [];
+    if (note.title) kids.push(h("p", { class: "team-title", text: note.title }));
+    (note.text || []).forEach(function (t) { kids.push(h("p", { text: t })); });
+    if (note.sign) kids.push(h("p", { class: "team-sign", text: note.sign }));
+    var panel = h("div", { class: "more-panel team-note", id: "more-" + id }, kids);
+    panel.hidden = !open;
+    return { btn: btn, panel: panel };
   }
 
   function countText(q) { return "Selected: " + M.effective(q, state.answers).length + "."; }
@@ -188,7 +242,6 @@
   // The "?" by a question heading (question "more"): a fuller explanation that opens under the
   // heading. It adds to what the form already says; nothing the client must read is put here.
   // Open panels are remembered while the page is open (not saved): a repaint keeps them open.
-  var moreOpen = {};
   function moreHead(q, heading, into) {
     var open = !!moreOpen[q.id];
     var btn = h("button", {
@@ -218,8 +271,15 @@
       if (M.isText(q)) block.appendChild(h("label", { class: "wm-h3 field-label", for: "f-" + q.id, text: q.label }));
       else {
         var heading = h("h3", { class: "wm-h3" + (q.hideLabel ? " sr-only" : ""), text: q.ask || q.label });
+        var qNote = q.hideLabel ? null : teamNote(q);
         if (q.more && !q.hideLabel) moreHead(q, heading, block);
+        else if (qNote) block.appendChild(h("div", { class: "q-head" }, [heading]));
         else block.appendChild(heading);
+        if (qNote) {
+          var qp = teamParts(q.id, qNote);
+          block.querySelector(".q-head").appendChild(qp.btn);
+          block.appendChild(qp.panel);
+        }
       }
       questionNotes(q, block);
     }
@@ -247,9 +307,12 @@
         var g = opt.group && groups[opt.group];
         if (g && !shown[g.id]) {
           shown[g.id] = true;
+          var gTitle = h("h3", { class: "wm-h3", text: g.title || "" });
+          var gNote = teamNote(g), gp = gNote ? teamParts(q.id + "-" + g.id, gNote) : null;
           grid.appendChild(h("div", { class: "span2 note-block" }, [
-            h("h3", { class: "wm-h3", text: g.title || "" }),
-            g.text ? h("p", { text: g.text }) : null
+            gp ? h("div", { class: "q-head" }, [gTitle, gp.btn]) : gTitle,
+            gp ? gp.panel : null,
+            g.text ? h("p", { class: "group-text", text: g.text }) : null
           ]));
         }
         if (opt.image) grid.appendChild(photoButton(q, opt, q.layout === "drawings"));
@@ -944,6 +1007,7 @@
   }
 
   function render() {
+    closeTip();
     if (SPEC.cover && !state.started && state.view !== "sent") { renderCover(); return; }
     app.classList.remove("on-cover");
     var step = currentStep();
@@ -1308,6 +1372,9 @@
 
   // ---- events ---------------------------------------------------------------
   app.addEventListener("click", function (e) {
+    var tq = e.target.closest ? e.target.closest(".tag-q") : null;
+    if (tq) { toggleTip(tq); return; } // the "?" by a tag explains the tag; it does not pick the option
+    closeTip();
     var btn = e.target.closest ? e.target.closest("[data-action]") : null;
     if (!btn || !app.contains(btn)) return;
     var action = btn.getAttribute("data-action");
@@ -1363,7 +1430,7 @@
     if (zoomBack && zoomBack.focus) zoomBack.focus({ preventScroll: true });
     zoomBack = null;
   }
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeZoom(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeZoom(); closeTip(); } });
 
   app.addEventListener("input", function (e) {
     var t = e.target;
