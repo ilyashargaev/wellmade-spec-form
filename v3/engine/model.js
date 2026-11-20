@@ -362,9 +362,14 @@
     }
 
     // What the picked answers add to the price: [{question, label, option, optionLabel, price}] and the total.
-    function pricing(answers) {
+    // "base" = the studio price of the client's quote (from the personal link), 0 or missing = none.
+    // With a base the result also carries the estimate (base + total). "unpriced" = picked options
+    // that cost extra but have no list price (their tag is one of prices.quoteTags, or an "extra"
+    // of a rule without a price): the manager prices them, so the estimate must say it is not complete.
+    function pricing(answers, base) {
       var a = answers || defaultAnswers();
-      var items = [];
+      var items = [], unpriced = [];
+      var quoteTags = (PRICES && PRICES.quoteTags) || [];
       questions.forEach(function (qq) {
         if (!qq.options || isInactive(qq.id, a)) return;
         var rule = includedBy[qq.id] || baseIncluded[qq.id];
@@ -372,15 +377,20 @@
         effective(qq, a).forEach(function (id) {
           var o = option(qq, id);
           var p = null;
+          var extra = !!(info[id] && info[id].kind === "extra");
           if (hasPrice(o, "price")) p = o.price;
-          else if (hasPrice(rule, "extraPrice") && info[id] && info[id].kind === "extra") p = rule.extraPrice;
+          else if (hasPrice(rule, "extraPrice") && extra) p = rule.extraPrice;
           if (p != null) items.push({ question: qq.id, label: qq.label, option: id, optionLabel: o ? o.label : id, price: p, text: priceTag(p) });
+          else if ((o && o.tag && quoteTags.indexOf(o.tag) >= 0) || extra)
+            unpriced.push({ question: qq.id, label: qq.label, option: id, optionLabel: o ? o.label : id, tag: (o && o.tag) || (rule && rule.extraTag) || "" });
         });
       });
       var total = items.reduce(function (sum, x) { return sum + x.price; }, 0);
+      var b = typeof base === "number" && base > 0 ? base : 0;
       return {
         enabled: !!PRICES, unit: PRICES ? PRICES.unit || "" : "", note: PRICES ? PRICES.note || "" : "",
-        items: items, total: total, totalText: priceText(total)
+        items: items, total: total, totalText: priceText(total), unpriced: unpriced,
+        base: b, baseText: b ? priceText(b) : "", estimate: b ? b + total : 0, estimateText: b ? priceText(b + total) : ""
       };
     }
 
@@ -494,7 +504,7 @@
 
   // "#id=...&name=...&to=..." from a link id, {param: text} and an optional list of result
   // recipients (emails). Empty values are left out.
-  function linkHash(spec, id, byParam, recipients, manager) {
+  function linkHash(spec, id, byParam, recipients, manager, price) {
     var parts = ["id=" + encodePart(id)];
     linkFields(spec).forEach(function (f) {
       var v = cleanLinkValue(byParam && byParam[f.param]);
@@ -504,9 +514,23 @@
     Object.keys(LINK_MANAGER_PARAMS).forEach(function (k) {
       if (m[k]) parts.push(LINK_MANAGER_PARAMS[k] + "=" + encodePart(m[k]));
     });
+    var pr = cleanPrice(price);
+    if (pr) parts.push(LINK_PRICE_PARAM + "=" + pr);
     var to = (recipients || []).filter(Boolean).join(",");
     if (to) parts.push(LINK_TO_PARAM + "=" + encodePart(to));
     return "#" + parts.join("&");
+  }
+
+  // ---- the studio price of the client's quote ("price" in the link) -------------
+  // A whole number of prices.unit. The manager may type "47900", "$47,900" or "47,900.00";
+  // the link carries digits only. Anything else reads as 0 = no price, and the form then
+  // shows only the prices of the extras. Anyone can edit a link, so it is checked again when read.
+  var LINK_PRICE_PARAM = "price";
+  function cleanPrice(v) {
+    var s = cleanLinkValue(v).replace(/[$,\s]/g, "").replace(/\.\d{1,2}$/, "");
+    if (!/^\d{1,8}$/.test(s)) return 0;
+    var n = parseInt(s, 10);
+    return n > 0 ? n : 0;
   }
 
   // ---- the client's manager (shown on the cover: "contact your manager") --------
@@ -585,7 +609,7 @@
     // Recipients are passed on as the link has them (cleaned, capped); the receiver decides.
     var recipients = LINK_TO_PARAM in p ? parseRecipients(String(p[LINK_TO_PARAM]).slice(0, 3000)).slice(0, RECIPIENTS_MAX * 2) : [];
     var manager = cleanManager({ name: p[LINK_MANAGER_PARAMS.name], email: p[LINK_MANAGER_PARAMS.email], book: p[LINK_MANAGER_PARAMS.book] });
-    return { id: p.id, values: values, recipients: recipients, manager: manager };
+    return { id: p.id, values: values, recipients: recipients, manager: manager, price: cleanPrice(p[LINK_PRICE_PARAM]) };
   }
 
   global.SpecEngine = {
@@ -593,6 +617,7 @@
     linkFields: linkFields, linkHash: linkHash, readLink: readLink, LINK_ID_RE: LINK_ID_RE,
     LINK_TO_PARAM: LINK_TO_PARAM, RECIPIENTS_MAX: RECIPIENTS_MAX,
     parseRecipients: parseRecipients, checkRecipients: checkRecipients,
-    LINK_MANAGER_PARAMS: LINK_MANAGER_PARAMS, cleanManager: cleanManager, bookUrl: bookUrl
+    LINK_MANAGER_PARAMS: LINK_MANAGER_PARAMS, cleanManager: cleanManager, bookUrl: bookUrl,
+    LINK_PRICE_PARAM: LINK_PRICE_PARAM, cleanPrice: cleanPrice
   };
 })(typeof globalThis !== "undefined" ? globalThis : this);

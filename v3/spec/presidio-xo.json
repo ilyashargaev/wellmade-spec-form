@@ -1,10 +1,10 @@
 {
   "specId": "presidio-xo",
-  "specVersion": "0.3.5",
+  "specVersion": "0.3.6",
   "formName": "Wellmade Presidio XO spec",
   "title": "Presidio spec sheet",
   "pageTitle": "Presidio spec sheet · Wellmade",
-  "model": "Presidio, door on the left (XO)",
+  "model": "Presidio door on the left (XO)",
   "sources": [
     "2026-11-04 Presidio Spec Sheet XO (from Emily).pdf",
     "2026-11-04 Finishes (from Emily).pdf"
@@ -73,19 +73,29 @@
   "prices": {
     "unit": "USD",
     "symbol": "$",
-    "note": "List prices of the extras you picked, installed. The price of the studio itself is in your quote. Your manager confirms the final total."
+    "note": "List prices of the extras you picked, installed. The price of the studio itself is in your quote. Your manager confirms the final total.",
+    "quoteTags": ["Additional cost", "Custom quote", "Priced by size"],
+    "estimate": {
+      "label": "Estimate",
+      "title": "Your estimate",
+      "baseLabel": "Your studio, as quoted",
+      "unpricedLabel": "Priced by your manager",
+      "unpricedShort": "plus options your manager will price",
+      "note": "This estimate is the price in your quote plus Wellmade list prices for the options you picked. It is not a final price or an offer. Your manager will send the final price for your project and site."
+    }
   },
 
   "cover": {
     "image": "images/hero.jpg",
     "alt": "Presidio studio with the door on the left, wood front, and a corner deck.",
-    "caption": "Your studio: Presidio, door on the left.",
+    "caption": "Your studio: Presidio door on the left (XO).",
     "hello": "Hello {client},",
-    "title": "Your studio specifications",
+    "title": "Select your studio specifications",
     "text": [
       "You received this form to choose the details of your future studio.",
       "We order materials and build from your answers, so please make sure they are what you really want."
     ],
+    "priceText": "The estimate at the bottom of the screen updates as you choose.",
     "contact": {
       "text": "Any question or doubt along the way? You are always welcome to contact your Wellmade manager.",
       "textNamed": "Any question or doubt along the way? You are always welcome to contact your manager, {manager}.",

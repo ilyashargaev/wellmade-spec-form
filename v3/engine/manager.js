@@ -89,6 +89,25 @@
       err
     ]));
   });
+  // The studio price of the client's quote. Optional. With it the form shows an estimate (this price
+  // plus the list prices of the options the client picks); without it only the extras are priced.
+  var PRICE = E.LINK_PRICE_PARAM;
+  var priceInput = null;
+  if (SPEC.prices && SPEC.prices.estimate) {
+    priceInput = h("input", {
+      class: "wm-input", id: "m-" + PRICE, name: PRICE, type: "text", inputmode: "decimal", autocomplete: "off",
+      spellcheck: "false", "aria-describedby": "help-" + PRICE + " err-" + PRICE
+    });
+    var priceErr = h("p", { class: "field-error", id: "err-" + PRICE, text: "" });
+    priceErr.hidden = true;
+    inputs[PRICE] = { input: priceInput, err: priceErr, field: { param: PRICE, label: "Studio price in the quote" } };
+    form.appendChild(h("div", { class: "mgr-field mgr-price" }, [
+      h("label", { class: "wm-h3 field-label", for: "m-" + PRICE }, ["Studio price in the quote, " + (SPEC.prices.symbol || SPEC.prices.unit), h("span", { class: "optional", text: " (optional)" })]),
+      h("p", { class: "hint", id: "help-" + PRICE, text: "The total of this client's quote, for example 47900. The form adds the list prices of the options the client picks and shows an estimate that changes with every choice. Without it the form shows only the prices of the extras." }),
+      h("div", { class: "field" }, [priceInput]),
+      priceErr
+    ]));
+  }
   // The client's manager: shown on the first screen of the form ("contact your manager"). Optional;
   // without them the form shows the company email and phone. Not spec fields: they are not answers.
   var MGR = [
@@ -197,8 +216,14 @@
         : "The booking link must be a full address that starts with https://");
       if (bad && !firstBad) firstBad = inputs[f.param].input;
     });
+    var typedPrice = priceInput ? priceInput.value.trim() : "";
+    var price = E.cleanPrice(typedPrice);
+    if (priceInput) {
+      showError(PRICE, typedPrice && !price ? "Type the price as a whole number, for example 47900." : "");
+      if (typedPrice && !price && !firstBad) firstBad = priceInput;
+    }
     if (firstBad) { hideResult(); firstBad.focus(); return; }
-    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values, recipients, manager);
+    out.value = formUrl() + E.linkHash(SPEC, newLinkId(), values, recipients, manager, price);
     var nameField = FIELDS[0];
     resultTitle.textContent = "Link for " + (values[nameField.param] || "the client");
     status.textContent = "";

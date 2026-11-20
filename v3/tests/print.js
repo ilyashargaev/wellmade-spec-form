@@ -17,7 +17,7 @@ const S_VERSION = JSON.parse(fs.readFileSync(path.join(PILOT, 'spec/presidio-xo.
     await b.ev('window.dispatchEvent(new Event("beforeprint"));true');
     const p = await b.ev('({h1: document.querySelector("#print-sheet h1").textContent, rows: document.querySelectorAll("#print-sheet .row").length, previewImage: !!document.querySelector("#print-sheet img.preview-print"), meta: [...document.querySelectorAll("#print-sheet .meta")].map(e=>e.textContent)})');
     console.log('print sheet:', J(p));
-    ok(p.h1 === 'Presidio spec sheet' && p.previewImage && p.meta[0] === 'Presidio, door on the left (XO)', 'print sheet: title, recolored preview image, model line without a model note');
+    ok(p.h1 === 'Presidio spec sheet' && p.previewImage && p.meta[0] === 'Presidio door on the left (XO)', 'print sheet: title, recolored preview image, model line without a model note');
     // 2.5.0: "Your details" is the first section; the permits question may stay empty and is not in "Still open".
     const ps = await b.ev(`(()=>{const kids=[...document.querySelectorAll("#print-sheet > *")]; const h2=kids.filter(e=>e.tagName==="H2").map(e=>e.textContent);
       const at=kids.findIndex(e=>e.tagName==="H2"&&e.textContent==="Still open"); const open=[]; if(at>=0) for(let i=at+1;i<kids.length&&kids[i].tagName==="P";i++) open.push(kids[i].textContent);

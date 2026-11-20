@@ -644,6 +644,34 @@
     });
     paintPlans();
     paintPreview();
+    paintEstimate();
+  }
+
+  // ---- estimate ------------------------------------------------------------------
+  // The personal link may carry the studio price of the client's quote ("price"). Then the bottom
+  // bar shows an estimate: that price plus the list prices of the picked options, updated on every
+  // tap. Without a price in the link nothing of this shows: only the extras are priced, on Review.
+  var EST = (SPEC.prices && SPEC.prices.estimate) || null;
+  var BASE = LINK && LINK.price && EST ? LINK.price : 0;
+  function pricingNow() { return M.pricing(state.answers, BASE); }
+
+  function estimateBar() {
+    return h("div", { class: "bar-est", id: "bar-est", role: "status", "aria-live": "polite" }, [
+      h("div", { class: "est-text" }, [
+        h("span", { class: "est-k", text: EST.label || "Estimate" }),
+        h("span", { class: "est-more", id: "est-more", text: EST.unpricedShort || "" })
+      ]),
+      h("b", { class: "est-v", id: "est-v" })
+    ]);
+  }
+
+  function paintEstimate() {
+    var v = document.getElementById("est-v");
+    if (!v) return;
+    var pr = pricingNow();
+    v.textContent = pr.estimateText;
+    var more = document.getElementById("est-more");
+    if (more) more.hidden = !pr.unpriced.length || !EST.unpricedShort;
   }
 
   function toggle(qid, value) {
@@ -737,8 +765,9 @@
 
   // Priced extras and their total (spec.prices), for Review and the printed sheet.
   function priceRows(into) {
-    var pr = M.pricing(state.answers);
+    var pr = pricingNow();
     if (!pr.enabled) return;
+    if (pr.base) { estimateRows(into, pr); return; }
     into.appendChild(h("h3", { class: "wm-h3 price-title", text: "Price of your extras" }));
     if (!pr.items.length) into.appendChild(h("p", { class: "hint", text: "Nothing with an extra price is picked." }));
     pr.items.forEach(function (it) {
@@ -752,6 +781,26 @@
       h("div", { class: "v" }, [h("b", { class: "price price-sum", text: pr.totalText })])
     ]));
     if (pr.note) into.appendChild(h("p", { class: "hint price-note", text: pr.note }));
+  }
+
+  // With the studio price from the link: the quote price, each priced option, the options the manager
+  // still has to price, the estimate, and the note that says what the estimate is and is not.
+  function estimateRows(into, pr) {
+    function row(cls, k, vText, priceText) {
+      into.appendChild(h("div", { class: "row price-row" + cls }, [
+        h("div", { class: "k", text: k }),
+        h("div", { class: "v" }, [vText ? h("span", { text: vText }) : null, h("b", { class: "price", text: priceText })])
+      ]));
+    }
+    into.appendChild(h("h3", { class: "wm-h3 price-title", text: EST.title || EST.label || "Estimate" }));
+    row(" price-base", EST.baseLabel || "Studio", "", pr.baseText);
+    pr.items.forEach(function (it) { row("", it.label, it.optionLabel, it.text); });
+    pr.unpriced.forEach(function (it) { row(" price-unpriced", it.label, it.optionLabel, EST.unpricedLabel || it.tag); });
+    into.appendChild(h("div", { class: "row price-row price-total" }, [
+      h("div", { class: "k", text: EST.label || "Estimate" }),
+      h("div", { class: "v" }, [h("b", { class: "price price-sum", text: pr.estimateText })])
+    ]));
+    if (EST.note) into.appendChild(h("p", { class: "hint price-note est-note", text: EST.note }));
   }
 
   // What is still open, on Review. Repainted while the client types in the details there.
@@ -889,6 +938,7 @@
     var hello = fillText(c.hello);
     if (hello) main.appendChild(h("p", { class: "cover-hello", text: hello }));
     (c.text || []).forEach(function (t) { main.appendChild(h("p", { class: "cover-text", text: t })); });
+    if (BASE && c.priceText) main.appendChild(h("p", { class: "cover-text cover-price", text: c.priceText }));
     var contact = coverContact(c.contact);
     if (contact) main.appendChild(contact);
     if (c.invite) main.appendChild(h("p", { class: "cover-invite", text: c.invite }));
@@ -953,9 +1003,15 @@
       if (step.showPreview) main.appendChild(previewBlock(false));
       renderItems(step, main, heroItem);
     }
+    // The estimate is on screen on every step, so what it is and is not is written under every step
+    // (on Review the same note sits in the price block).
+    var withEst = BASE > 0 && state.view !== "sent";
+    if (withEst && step.kind !== "review" && EST.note) main.appendChild(h("p", { class: "fine-print est-note", text: EST.note }));
+    app.classList.toggle("has-est", withEst);
     app.appendChild(main);
 
     var bar = h("div", { class: "bar" });
+    if (withEst) bar.appendChild(estimateBar());
     var inner = h("div", { class: "bar-in" });
     var back = h("button", { type: "button", class: "wm-btn wm-btn--secondary", "data-action": "back", text: "Back" });
     if (idx === 0) back.disabled = true;
@@ -979,6 +1035,7 @@
     paintPreview();
     paintOpen();
     paintSend();
+    paintEstimate();
     measure();
     // Move focus to the heading so a screen reader announces the new step. Styles show a ring
     // only for keyboard focus (:focus-visible), not for this programmatic move after a tap.

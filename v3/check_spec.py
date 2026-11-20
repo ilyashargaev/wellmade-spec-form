@@ -38,11 +38,12 @@ FIGURE_LAYOUTS = {"product", "product wide"}
 
 TOP_KEYS = {"specId", "specVersion", "formName", "title", "pageTitle", "model", "modelNote",
             "sources", "brand", "download", "link", "plans", "preview", "cover", "prices", "steps", "rules"}
-COVER_KEYS = {"image", "alt", "caption", "hello", "title", "text", "contact", "invite", "button"}
+COVER_KEYS = {"image", "alt", "caption", "hello", "title", "text", "priceText", "contact", "invite", "button"}
 COVER_CONTACT_KEYS = {"text", "textNamed", "email", "phone", "bookLabel"}
 LINK_PARAM_RE = re.compile(r"^[a-z][a-z0-9]*$")
-# the link id travels as "id", the result recipients as "to", the manager's name, email and booking link as "mgr", "mgremail", "book"
-LINK_RESERVED = {"id", "to", "mgr", "mgremail", "book"}
+# the link id travels as "id", the result recipients as "to", the manager's name, email and booking link as "mgr", "mgremail", "book",
+# the studio price from the quote as "price"
+LINK_RESERVED = {"id", "to", "mgr", "mgremail", "book", "price"}
 STEP_KEYS = {"id", "kind", "title", "short", "pageRef", "intro", "hint", "showModel", "showPreview", "heroLayout", "items",
              "detailsTitle", "detailsHint"}
 # lead = a sentence before the question; ask = the heading shown instead of the label;
@@ -228,10 +229,25 @@ class Checker:
             if not isinstance(prices, dict):
                 self.err("prices", 'must be an object like {"unit": "USD", "note": "..."}')
             else:
-                self.keys(prices, {"unit", "symbol", "note"}, "prices")
+                self.keys(prices, {"unit", "symbol", "note", "quoteTags", "estimate"}, "prices")
                 self.need_str(prices, "unit", "prices")
                 self.need_str(prices, "symbol", "prices", required=False)
                 self.need_str(prices, "note", "prices", required=False)
+                # quoteTags: option tags that mean "costs extra, the manager prices it" (no list price).
+                qt = prices.get("quoteTags")
+                if qt is not None and not (isinstance(qt, list) and all(isinstance(t, str) and t.strip() for t in qt)):
+                    self.err("prices", '"quoteTags" must be a list of tag texts, like ["Custom quote"]')
+                # estimate: texts of the running estimate, shown when the client link carries the studio price.
+                est = prices.get("estimate")
+                if est is not None:
+                    if not isinstance(est, dict):
+                        self.err("prices.estimate", "must be an object")
+                    else:
+                        self.keys(est, {"label", "title", "baseLabel", "unpricedLabel", "unpricedShort", "note"}, "prices.estimate")
+                        self.need_str(est, "label", "prices.estimate")
+                        self.need_str(est, "note", "prices.estimate")
+                        for k in ("title", "baseLabel", "unpricedLabel", "unpricedShort"):
+                            self.need_str(est, k, "prices.estimate", required=False)
 
         cover = spec.get("cover")
         if cover is not None:
@@ -240,7 +256,7 @@ class Checker:
             else:
                 self.keys(cover, COVER_KEYS, "cover")
                 self.need_str(cover, "title", "cover")
-                for k in ("alt", "caption", "hello", "button", "invite"):
+                for k in ("alt", "caption", "hello", "button", "invite", "priceText"):
                     self.need_str(cover, k, "cover", required=False)
                 contact = cover.get("contact")
                 if contact is not None:
