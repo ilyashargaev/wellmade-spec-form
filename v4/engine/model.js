@@ -286,11 +286,15 @@
       if (!qq || !opt) return null;
       var dyn = hasDynamicTags(qq);
       var info = dyn ? (tagInfo(qq, a)[value] || null) : null;
+      // Board upgrades: once the deck size is known the tag shows the amount for that deck, not the rate.
+      var boardRate = deckSpec && qid === "decking" && deckSpec.materialRates[opt.group] || 0;
+      var deckNow = boardRate ? deckEstimate(a) : null;
+      var boardTag = deckNow && deckNow.area !== null ? priceTag(Math.round(deckNow.area * boardRate)) : "";
       return {
         on: effective(qq, a).indexOf(value) >= 0,
-        tag: dyn ? (info ? info.text : "") : (needsQuote(qq, opt, a) ? "Custom quote" : opt.tag || (hasPrice(opt, "price") ? priceTag(opt.price) : "")),
+        tag: boardTag ? boardTag : dyn ? (info ? info.text : "") : (needsQuote(qq, opt, a) ? "Custom quote" : opt.tag || (hasPrice(opt, "price") ? priceTag(opt.price) : "")),
         kind: info ? info.kind : "",
-        dynamicTag: dyn || !!opt.priceRequires,
+        dynamicTag: dyn || !!opt.priceRequires || !!boardRate,
         locked: isLocked(qq, value, a),
         blocked: isBlocked(qid, a),
         disabled: isInactive(qid, a) || isBlocked(qid, a)

@@ -133,8 +133,20 @@
             { "id": "coastal-white", "label": "Coastal White", "image": "images/stain-4.jpg", "color": "#afa59d" },
             { "id": "midnight-black", "label": "Midnight Black", "image": "images/stain-5.jpg", "color": "#3a3c41" }
           ] },
+        { "id": "deckConfig", "kind": "single", "layout": "drawings", "label": "Deck configuration",
+          "lead": "Now the deck. First, its shape and size.",
+          "hint": "A = 3 ft and B = 5 ft is the standard 93 sq ft package at $6,900. For any other size, enter A and B to see the price: $82 per sq ft of deck. Upgraded boards are extra; you choose them next. Your manager confirms any price change to your agreement. For larger decks or other shapes, use Comments.",
+          "options": [
+            { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
+            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 6900 },
+            { "id": "custom", "label": "Custom corner deck", "image": "images/deck-custom.png", "tag": "Priced by size" }
+          ] },
+        { "id": "dimA", "kind": "text", "label": "A dimension", "suffix": "feet", "inputmode": "decimal",
+          "hint": "Front projection on the drawing, up to 15 ft." },
+        { "id": "dimB", "kind": "text", "label": "B dimension", "suffix": "feet", "inputmode": "decimal",
+          "hint": "Side projection on the drawing, up to 10 ft." },
         { "id": "decking", "kind": "single", "layout": "photos", "label": "Decking",
-          "lead": "Now the deck. First, the boards.",
+          "lead": "Then the boards.",
           "groups": [
             { "id": "trex-select", "title": "Trex Select series",
               "text": "Durable composite decking with a subtle woodgrain texture. Included when a deck is selected." },
@@ -163,18 +175,6 @@
         { "id": "deckingCustom", "kind": "lines", "label": "Custom decking details", "hideLabel": true,
           "placeholder": "Describe the decking you want here.",
           "hint": "Your manager will contact you to discuss whether it is possible and what it may cost." },
-        { "id": "deckConfig", "kind": "single", "layout": "drawings", "label": "Deck configuration",
-          "lead": "Then the shape of the deck.",
-          "hint": "A = 3 ft and B = 5 ft is the standard 93 sq ft package at $6,900. For any other size, enter A and B to see the price: $82 per sq ft of deck. Board upgrades are extra. Your manager confirms any price change to your agreement. For larger decks or other shapes, use Comments.",
-          "options": [
-            { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
-            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 6900 },
-            { "id": "custom", "label": "Custom corner deck", "image": "images/deck-custom.png", "tag": "Priced by size" }
-          ] },
-        { "id": "dimA", "kind": "text", "label": "A dimension", "suffix": "feet", "inputmode": "decimal",
-          "hint": "Front projection on the drawing, up to 15 ft." },
-        { "id": "dimB", "kind": "text", "label": "B dimension", "suffix": "feet", "inputmode": "decimal",
-          "hint": "Side projection on the drawing, up to 10 ft." },
         { "id": "floor", "kind": "single", "layout": "photos", "label": "Floor colors",
           "lead": "Now step inside: the floor.",
           "hint": "Waterproof laminate is included. If you choose White Oak, your manager will confirm whether your price changes.",
