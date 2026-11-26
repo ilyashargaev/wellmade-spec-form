@@ -777,3 +777,8 @@ body.zoom-open { overflow: hidden; }
 .plan-how { font-size: 16px; margin-bottom: 16px; }
 /* Laptop and desktop: people sit further from the screen, so everything is one step larger. */
 @media screen and (min-width: 900px) { html { zoom: 1.2; } }
+/* Custom deck: the Calculate button under B and the price it shows. */
+.deck-calc { margin-top: 16px; width: 100%; }
+.deck-result { margin-top: 16px; padding: 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); border: 1px solid var(--wm-teal-line);
+  display: grid; gap: 4px; color: var(--wm-ink); font-size: 15px; }
+.deck-result-v { font-size: 28px; font-weight: 500; color: var(--wm-teal-deep); line-height: 1.2; }

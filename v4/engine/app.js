@@ -303,6 +303,7 @@
       if (q.id === "dimA" || q.id === "dimB") {
         input.setAttribute("aria-describedby", "error-" + q.id);
         block.appendChild(h("p", { id: "error-" + q.id, class: "hint dimension-error", role: "status", hidden: true }));
+        if (q.id === "dimB") block.appendChild(h("button", { type: "button", class: "wm-btn wm-btn--primary deck-calc", "data-action": "deck-calc", text: "Calculate price" }));
       }
     } else if (q.kind === "lines") {
       var area = h("textarea", { class: "wm-input", id: "f-" + q.id, "data-qid": q.id, placeholder: q.placeholder });
@@ -766,6 +767,9 @@
   var BASE = LINK && LINK.price && EST ? LINK.price : 0;
   function pricingNow() { return M.pricing(state.answers, BASE); }
 
+  // Custom deck: the client types A and B and presses "Calculate price"; the price then shows in a
+  // box. Typing again hides it until the next press (saved sizes show their price straight away).
+  var deckCalcDone = true;
   function paintDeckEstimate() {
     var line = document.getElementById("deck-estimate");
     if (!line) return;
@@ -783,16 +787,26 @@
       warning.textContent = max ? "Enter a number greater than 0 and up to " + max + " ft, with up to two decimal places. For a larger deck, describe it in Comments for a manager quote." : "";
     });
     line.hidden = !deck;
+    line.className = "note";
     if (!deck) return;
     if (a.deckConfig === "step") {
       line.textContent = deck.rate || a.decking === "custom" ? "Your manager will confirm the board upgrade price for the step." : "The standard step is included.";
     } else if (deck.area === null) {
       var d = SPEC.prices.cornerDeck;
       line.textContent = "Enter both dimensions in feet (A up to " + d.frontMax + ", B up to " + d.sideMax + "). For other sizes or shapes, use Comments for a custom quote.";
+    } else if (a.deckConfig === "custom" && !deckCalcDone) {
+      line.textContent = "Press Calculate price to see the price of this deck.";
     } else {
       var cost = deck.base + (deck.upgrade || 0);
-      line.textContent = (deck.standard ? "Standard corner deck: " : "Custom corner deck: ") + deck.area + " sq ft · $" + cost.toLocaleString("en-US") +
-        (a.decking === "custom" ? " before custom boards." : deck.rate ? " including your board upgrade." : " with standard boards.");
+      var what = (deck.standard ? "Standard corner deck: " : "Custom corner deck: ") + deck.area + " sq ft";
+      var tail = a.decking === "custom" ? "before custom boards" : deck.rate ? "including your board upgrade" : "with standard boards";
+      if (a.deckConfig === "custom") {
+        line.className = "note deck-result";
+        line.textContent = "";
+        line.appendChild(h("span", { class: "deck-result-k", text: what }));
+        line.appendChild(h("b", { class: "deck-result-v", text: "$" + cost.toLocaleString("en-US") }));
+        line.appendChild(h("span", { class: "deck-result-k", text: tail }));
+      } else line.textContent = what + " · $" + cost.toLocaleString("en-US") + " " + tail + ".";
     }
   }
 
@@ -1478,6 +1492,7 @@
     var action = btn.getAttribute("data-action");
     if (action === "toggle") toggle(btn.getAttribute("data-qid"), btn.getAttribute("data-value"));
     else if (action === "layer") setLayer(btn.getAttribute("data-plan"), btn.getAttribute("data-qid"), false);
+    else if (action === "deck-calc") { deckCalcDone = true; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); paintDeckEstimate(); paintEstimate(); }
     else if (action === "reset") resetForm();
     else if (action === "start") { state.started = true; persist(); render(); window.scrollTo(0, 0); }
     else if (action === "goto") gotoStep(btn.getAttribute("data-step"), btn.getAttribute("data-qid"));
@@ -1537,6 +1552,7 @@
     state.answers = M.setText(state.answers, t.getAttribute("data-qid"), t.value);
     persist();
     if (t.getAttribute("data-qid") === "dimA" || t.getAttribute("data-qid") === "dimB") {
+      deckCalcDone = false;
       paintDeckEstimate();
       paintEstimate();
     }
