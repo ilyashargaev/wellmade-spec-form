@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#3A3A3A"><!-- internal page: gray, not the client teal -->
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Internal · Client link · v0.3</title>
+<link rel="stylesheet" href="wellmade-tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- data-form: the form page the link opens, relative to this page. -->
+<div id="manager" class="app manager" data-form="index.html"></div>
+<noscript>
+  <p>This page needs JavaScript.</p>
+</noscript>
+<!-- The spec: generated from spec/presidio-xo.json by check_spec.py. Its "link" block names the fields. -->
+<script src="spec/presidio-xo.js"></script>
+<!-- Delivery settings (receiver address, allowed email domains): not part of the spec. -->
+<script src="site-config.js"></script>
+<script src="engine/model.js"></script>
+<script src="engine/manager.js"></script>
+</body>
+</html>
