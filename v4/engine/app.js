@@ -141,7 +141,7 @@
   // ---- option buttons -------------------------------------------------------
   var moreOpen = {}; // open "?" and "!" panels, by id (this visit only)
   function choiceButton(q, opt) {
-    var st = M.optionState(q.id, opt.id, state.answers);
+    var st = M.optionState(q.id, opt.id, priceAnswers());
     var kids = [h("span", { text: opt.label })];
     if (st.dynamicTag || st.tag) {
       var tag = h("span", { class: "wm-tag", text: st.tag });
@@ -160,7 +160,7 @@
   }
 
   function photoButton(q, opt, drawing) {
-    var st = M.optionState(q.id, opt.id, state.answers);
+    var st = M.optionState(q.id, opt.id, priceAnswers());
     return h("button", {
       type: "button",
       class: drawing ? "photo drawing" : "photo",
@@ -484,7 +484,7 @@
       var qid = el.getAttribute("data-qid");
       var q = M.question(qid);
       var opt = M.option(q, el.getAttribute("data-value"));
-      var st = M.optionState(qid, opt.id, state.answers);
+      var st = M.optionState(qid, opt.id, priceAnswers());
       var isActive = qid === active;
       el.classList.toggle("passive", !isActive);
       el.classList.toggle("on", st.on);
@@ -548,7 +548,7 @@
       legend.appendChild(shapes);
     }
     var hasIncluded = activeQ && (activeQ.options || []).some(function (o) {
-      var os = M.optionState(active, o.id, state.answers);
+      var os = M.optionState(active, o.id, priceAnswers());
       return os && os.on && os.kind === "included";
     });
     if (notes && notes.included && hasIncluded) {
@@ -722,7 +722,7 @@
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
       if (el.classList.contains("hot")) continue;
-      var st = M.optionState(el.getAttribute("data-qid"), el.getAttribute("data-value"), state.answers);
+      var st = M.optionState(el.getAttribute("data-qid"), el.getAttribute("data-value"), priceAnswers());
       if (!st) continue;
       el.setAttribute("aria-pressed", st.on ? "true" : "false");
       el.disabled = st.disabled;
@@ -765,11 +765,24 @@
   // tap. Without a price in the link nothing of this shows: only the extras are priced, on Review.
   var EST = (SPEC.prices && SPEC.prices.estimate) || null;
   var BASE = LINK && LINK.price && EST ? LINK.price : 0;
-  function pricingNow() { return M.pricing(state.answers, BASE); }
+  // Custom deck sizes count for prices only after "Calculate price" (or after leaving the step):
+  // until then every price on the page treats the deck size as not entered yet.
+  var deckCalcDone = true;
+  function deckHeld() { return !deckCalcDone && state.answers.deckConfig === "custom"; }
+  function priceAnswers() {
+    if (!deckHeld()) return state.answers;
+    var a = {}; Object.keys(state.answers).forEach(function (k) { a[k] = state.answers[k]; });
+    a.dimA = ""; a.dimB = "";
+    return a;
+  }
+  function pricingNow() {
+    var pr = M.pricing(priceAnswers(), BASE);
+    if (deckHeld() && pr.pendingDeck) pr.estimateStatus = "Press Calculate price";
+    return pr;
+  }
 
   // Custom deck: the client types A and B and presses "Calculate price"; the price then shows in a
   // box. Typing again hides it until the next press (saved sizes show their price straight away).
-  var deckCalcDone = true;
   function paintDeckEstimate() {
     var line = document.getElementById("deck-estimate");
     if (!line) return;
@@ -1208,6 +1221,7 @@
     if (qid && M.isInactive(qid, state.answers)) focusId = M.controllerOf(qid, state.answers) || qid;
     var fq = focusId && M.question(focusId);
     if (fq && fq.plan) planLayer[fq.plan.id] = fq.id;
+    deckCalcDone = true; // leaving the step counts as "Calculate price"
     state.step = id;
     state.view = "form";
     state.started = true;
@@ -1253,7 +1267,7 @@
             if (q && q.options) {
               // Picked options with their tag (fixed, like "Additional cost", or rule-made, like "Included").
               row.options = r.inactive ? [] : M.effective(q, state.answers).map(function (oid) {
-                var o = M.option(q, oid), st = M.optionState(q.id, oid, state.answers);
+                var o = M.option(q, oid), st = M.optionState(q.id, oid, priceAnswers());
                 return { id: oid, label: o ? o.label : oid, tag: (st && st.tag) || "" };
               });
             }
