@@ -79,11 +79,10 @@
     },
     "symbol": "$",
     "note": "List prices of the extras you picked, installed. The price of the studio itself is in your quote. Your manager confirms the final total.",
-    "quoteTags": ["Additional cost", "Custom quote", "Priced by size", "Confirm with manager"],
+    "quoteTags": ["Additional cost", "Custom quote", "Priced by size"],
     "quoteHelp": "Your manager will send you the price after you send your choices.",
     "quoteHelpByTag": {
       "Priced by size": "Enter both dimensions to see the price for a custom corner deck.",
-      "Confirm with manager": "Your manager will check your agreement and confirm whether there is a price change.",
       "Custom quote": "Your manager will discuss this option with you: whether it is possible and what it may cost."
     },
     "estimate": {
@@ -177,7 +176,7 @@
           "hint": "Your manager will contact you to discuss whether it is possible and what it may cost." },
         { "id": "floor", "kind": "single", "layout": "photos", "label": "Floor colors",
           "lead": "Now step inside: the floor.",
-          "hint": "Waterproof laminate is included. If you choose White Oak, your manager will confirm whether your price changes.",
+          "hint": "All three floors are included in the price.",
           "more": { "label": "Laminate or engineered hardwood",
             "text": [
               "Waterproof laminate is a practical choice for a gym or art studio and is easy to clean.",
@@ -186,7 +185,7 @@
           "options": [
             { "id": "light-gray", "label": "Light Gray — Waterproof Laminate", "image": "images/floor-1.jpg" },
             { "id": "dark-gray", "label": "Dark Gray — Waterproof Laminate", "image": "images/floor-2.jpg" },
-            { "id": "white-oak", "label": "White Oak — Engineered Hardwood", "tag": "Confirm with manager", "image": "images/floor-3.jpg" }
+            { "id": "white-oak", "label": "White Oak — Engineered Hardwood", "image": "images/floor-3.jpg" }
           ] },
         { "id": "finishComments", "kind": "lines", "label": "Comments", "optional": true }
       ]
