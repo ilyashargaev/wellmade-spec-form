@@ -1492,7 +1492,7 @@
     var action = btn.getAttribute("data-action");
     if (action === "toggle") toggle(btn.getAttribute("data-qid"), btn.getAttribute("data-value"));
     else if (action === "layer") setLayer(btn.getAttribute("data-plan"), btn.getAttribute("data-qid"), false);
-    else if (action === "deck-calc") { deckCalcDone = true; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); paintDeckEstimate(); paintEstimate(); }
+    else if (action === "deck-calc") { deckCalcDone = true; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); refresh(); paintDeckEstimate(); paintEstimate(); }
     else if (action === "reset") resetForm();
     else if (action === "start") { state.started = true; persist(); render(); window.scrollTo(0, 0); }
     else if (action === "goto") gotoStep(btn.getAttribute("data-step"), btn.getAttribute("data-qid"));
@@ -1553,6 +1553,7 @@
     persist();
     if (t.getAttribute("data-qid") === "dimA" || t.getAttribute("data-qid") === "dimB") {
       deckCalcDone = false;
+      refresh(); // board upgrade tags follow the deck size
       paintDeckEstimate();
       paintEstimate();
     }
