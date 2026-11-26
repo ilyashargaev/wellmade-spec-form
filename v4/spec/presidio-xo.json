@@ -234,11 +234,12 @@
       "intro": "By default Wellmade installs a 125 amp, 2 circuit breaker box 5 ft above the ground, one exterior outlet right under it, and 3 interior outlets 18\" above the floor. Below you choose the connection and where everything goes.",
       "items": [
         { "id": "connection", "kind": "multi", "label": "Connection",
-          "hint": "Choose the connection in your agreement. Hardline needs a custom quote. Ethernet adds $1,350 with hardline. For Ethernet on its own, your manager will confirm the price.",
+          "hint": "Choose the connection in your agreement. Hardline needs a custom quote. Ethernet is an add-on to hardline and adds $1,350.",
           "options": [
             { "id": "plug-in", "label": "Plug-in electrical connection", "tag": "Included" },
             { "id": "hardline", "label": "Hardline connection from main panel", "tag": "Custom quote" },
-            { "id": "ethernet", "label": "Ethernet connection", "price": 1350, "priceRequires": "hardline" },
+            { "id": "ethernet", "label": "Ethernet connection", "price": 1350, "requires": "hardline",
+              "help": "Ethernet is an add-on to the hardline connection: the cable runs in the same trench from your house. Choosing Ethernet also selects the hardline connection." },
             { "id": "third-party", "label": "My contractor will connect the studio breaker box to the house panel (no price change)" }
           ] },
         { "id": "breaker", "kind": "plan-single", "label": "Breaker box location",
@@ -312,9 +313,9 @@
     { "type": "alone", "question": "permits", "option": "none",
       "why": "NO permit cannot be combined with Building or Electrical." },
     { "type": "exclusive", "question": "connection", "options": ["plug-in", "hardline"],
-      "why": "Plug-in and hardline are two ways of the same connection; Ethernet stays independent." },
-    { "type": "exclusive", "question": "connection", "options": ["hardline", "third-party"],
-      "why": "Ilya, Nov 26: either Wellmade runs the hardline or the client's contractor connects the box, never both." },
+      "why": "Plug-in and hardline are two ways of the same connection. Ethernet is an add-on to hardline (option key requires)." },
+    { "type": "alone", "question": "connection", "option": "third-party",
+      "why": "Ilya, Nov 26: when the client's own contractor connects the studio, every Wellmade connection option is off." },
     { "type": "includedBy", "question": "exterior", "source": "breaker",
       "map": { "back-left": "back-left", "back-right": "back-right", "right-upper": "right-upper", "right-lower": "right-lower" },
       "includedTag": "Included", "extraTag": "Extra charge", "extraPrice": 500, "movable": true,

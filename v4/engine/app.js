@@ -146,7 +146,7 @@
     if (st.dynamicTag || st.tag) {
       var tag = h("span", { class: "wm-tag", text: st.tag });
       if (!st.tag) tag.hidden = true;
-      kids.push(quoteTag(st, tag));
+      kids.push(quoteTag(st, tag, opt));
     }
     return h("button", {
       type: "button",
@@ -186,7 +186,9 @@
   var QUOTE_HELP = (SPEC.prices && SPEC.prices.quoteHelp) || "";
   var QUOTE_HELP_BY = (SPEC.prices && SPEC.prices.quoteHelpByTag) || {};
   function quoteHelpFor(tag) { return QUOTE_HELP_BY[tag] || QUOTE_HELP; }
-  function quoteTag(st, tag) {
+  function quoteTag(st, tag, opt) {
+    // An option with its own "help" gets the "?" too: the bubble shows that sentence.
+    if (opt && opt.help) return h("span", { class: "tag-q", "data-help": opt.help }, [tag, h("span", { class: "tag-q-mark", "aria-hidden": "true", text: "?" })]);
     if (st.dynamicTag || QUOTE_TAGS.indexOf(st.tag) < 0 || !quoteHelpFor(st.tag)) return tag;
     return h("span", { class: "tag-q", "data-tag": st.tag }, [tag, h("span", { class: "tag-q-mark", "aria-hidden": "true", text: "?" })]);
   }
@@ -199,7 +201,7 @@
   function toggleTip(anchor) {
     if (tipFor === anchor) { closeTip(); return; }
     closeTip();
-    var tip = h("div", { class: "tag-tip", id: "tag-tip", role: "status", text: quoteHelpFor(anchor.getAttribute("data-tag")) });
+    var tip = h("div", { class: "tag-tip", id: "tag-tip", role: "status", text: anchor.getAttribute("data-help") || quoteHelpFor(anchor.getAttribute("data-tag")) });
     document.body.appendChild(tip);
     var r = anchor.getBoundingClientRect();
     var vw = document.documentElement.clientWidth;

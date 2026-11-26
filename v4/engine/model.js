@@ -362,7 +362,14 @@
         var at = list.indexOf(value);
         if (isLocked(qq, value, a)) return a; // an included option stays on
         if (at >= 0) list.splice(at, 1);
-        else list = addToMulti(qq, list, value);
+        else {
+          list = addToMulti(qq, list, value);
+          // An option with "requires" (Ethernet -> hardline) switches the option it needs on with it.
+          var need = option(qq, value).requires;
+          if (need && option(qq, need) && list.indexOf(need) < 0) { list = addToMulti(qq, list, need); if (list.indexOf(value) < 0) list.push(value); }
+        }
+        // ...and goes off when the option it needs is off.
+        list = list.filter(function (v) { var r = option(qq, v).requires; return !r || list.indexOf(r) >= 0; });
         a[qid] = list;
       }
       return normalize(a);
