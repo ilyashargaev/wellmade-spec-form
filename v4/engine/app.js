@@ -173,7 +173,8 @@
       h("span", { class: "badge", "aria-hidden": "true", text: "✓" }),
       h("img", { src: opt.image, alt: "", "aria-hidden": "true" }),
       h("span", { class: "name", text: opt.label }),
-      st.tag ? quoteTag(st, h("span", { class: "wm-tag", text: st.tag })) : null
+      st.tag ? quoteTag(st, h("span", { class: "wm-tag", text: st.tag })) : null,
+      drawing ? h("span", { class: "pick", "aria-hidden": "true" }) : null
     ]);
   }
 

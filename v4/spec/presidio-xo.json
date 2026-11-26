@@ -136,8 +136,8 @@
           "lead": "Now the deck. First, its shape and size.",
           "hint": "A = 3 ft and B = 5 ft is the standard 93 sq ft package at $6,900. For any other size, enter A and B to see the price: $82 per sq ft of deck. Upgraded boards are extra; you choose them next. Your manager confirms any price change to your agreement. For larger decks or other shapes, use Comments.",
           "options": [
-            { "id": "step", "label": "Step only (96\" x 12\")", "image": "images/deck-step.png" },
-            { "id": "standard", "label": "Standard corner deck (93 sqft)", "image": "images/deck-standard.png", "price": 6900 },
+            { "id": "step", "label": "Step only (1 × 8 ft)", "image": "images/deck-step.png" },
+            { "id": "standard", "label": "Standard corner deck (93 sq ft)", "image": "images/deck-standard.png", "price": 6900 },
             { "id": "custom", "label": "Custom corner deck", "image": "images/deck-custom.png", "tag": "Priced by size" }
           ] },
         { "id": "dimA", "kind": "text", "label": "A dimension", "suffix": "feet", "inputmode": "decimal",

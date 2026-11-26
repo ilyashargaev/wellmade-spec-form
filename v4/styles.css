@@ -223,7 +223,17 @@ textarea.wm-input { min-height: 112px; resize: vertical; }
   display: block;
   background: var(--wm-teal-mist);
 }
-.photo.drawing img { aspect-ratio: 4 / 3; object-fit: contain; background: var(--wm-white); border: 1px solid var(--wm-teal-line); }
+/* Drawings: a short frame (the deck is what matters, not the studio) and a visible Select button
+   under it, so nobody has to guess that the drawing itself is the button. */
+.photo.drawing { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: center; width: 100%; }
+.photo.drawing img { grid-column: 1 / -1; aspect-ratio: auto; height: 170px; object-fit: contain; background: var(--wm-white); border: 1px solid var(--wm-teal-line); }
+.photo.drawing .name, .photo.drawing .wm-tag, .photo.drawing .tag-q { grid-column: 1; justify-self: start; }
+.photo.drawing .pick { grid-column: 2; grid-row: 2 / span 2; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--wm-tap); min-width: 104px; padding: 0 18px; border-radius: var(--wm-radius-pill); border: 1px solid var(--wm-teal);
+  color: var(--wm-teal); background: var(--wm-white); font: 500 13px var(--wm-font); text-transform: uppercase; letter-spacing: .12px; }
+.photo.drawing .pick::before { content: "Select"; }
+.photo.drawing[aria-pressed="true"] .pick { background: var(--wm-teal); color: var(--wm-white); }
+.photo.drawing[aria-pressed="true"] .pick::before { content: "\2713  Selected"; }
 .photo[aria-pressed="true"] img { outline-color: var(--wm-teal); }
 .photo .name { display: block; margin-top: 8px; font-size: 14px; font-weight: 500; line-height: 1.3; }
 .photo .wm-tag { margin-top: 8px; }
@@ -761,3 +771,4 @@ body.zoom-open { overflow: hidden; }
 
 .wm-input[aria-invalid="true"] { border-color: #a33522; }
 .hint.dimension-error { color: #97301e; }
+.photo.drawing .badge { display: none; } /* the Select button shows the state */
