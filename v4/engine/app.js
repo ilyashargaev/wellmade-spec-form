@@ -60,7 +60,7 @@
   // ---- storage --------------------------------------------------------------
   // Answers a link starts with: the defaults plus the client details the link carries.
   function freshAnswers() {
-    var a = M.defaultAnswers();
+    var a = LINK && LINK.fill ? M.sanitize(LINK.fill) : M.defaultAnswers();
     return LINK ? M.applyLink(a, LINK.values) : a;
   }
 

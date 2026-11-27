@@ -711,7 +711,16 @@
     // Recipients are passed on as the link has them (cleaned, capped); the receiver decides.
     var recipients = LINK_TO_PARAM in p ? parseRecipients(String(p[LINK_TO_PARAM]).slice(0, 3000)).slice(0, RECIPIENTS_MAX * 2) : [];
     var manager = cleanManager({ name: p[LINK_MANAGER_PARAMS.name], email: p[LINK_MANAGER_PARAMS.email], book: p[LINK_MANAGER_PARAMS.book] });
-    return { id: p.id, values: values, recipients: recipients, manager: manager, price: cleanPrice(p[LINK_PRICE_PARAM]), notes: p[LINK_NOTES_PARAM] === "1" };
+    // "fill=<base64url JSON>": answers the form starts with (a demo, or choices carried over from an
+    // agreement). Only a starting point: the form cleans them like saved answers and the client can change all.
+    var fill = null;
+    if (p.fill && p.fill.length < 6000 && typeof atob === "function") {
+      try {
+        var parsed = JSON.parse(decodeURIComponent(escape(atob(p.fill.replace(/-/g, "+").replace(/_/g, "/")))));
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) fill = parsed;
+      } catch (e) { fill = null; }
+    }
+    return { id: p.id, values: values, recipients: recipients, manager: manager, fill: fill, price: cleanPrice(p[LINK_PRICE_PARAM]), notes: p[LINK_NOTES_PARAM] === "1" };
   }
 
   global.SpecEngine = {
