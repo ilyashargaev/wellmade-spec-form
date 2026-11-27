@@ -1262,7 +1262,8 @@
         return {
           section: s.title,
           answers: s.rows.map(function (r) {
-            var row = { id: r.id, question: r.label, answer: r.inactive || r.empty ? "" : r.answer, inactive: !!r.inactive, optional: !!r.optional };
+            var row = { id: r.id, question: r.label, answer: r.inactive || r.empty ? "" : r.answer, inactive: !!r.inactive, optional: !!r.optional,
+              shown: r.inactive || r.empty ? emptyText(r) : r.answer }; // the exact text the client sees on Review and in print
             var q = M.question(r.id);
             if (q && q.options) {
               // Picked options with their tag (fixed, like "Additional cost", or rule-made, like "Included").
@@ -1410,13 +1411,67 @@
       function (e) { clearTimeout(timer); throw e; });
   }
 
+  // What the manager's PDF needs to look like the client's printed sheet: the headings and the small
+  // pictures (logo, finish preview, swatches, drawings) as data, because the receiver cannot read the site.
+  // Never blocks sending: pictures that do not load in time are simply left out.
+  function sheetData(done) {
+    var brand = SPEC.brand || {};
+    var sheet = { title: SPEC.title, modelLine: SPEC.model + (SPEC.modelNote ? " · " + SPEC.modelNote : ""), footer: brand.footer || "",
+      estimate: EST ? { title: EST.title || EST.label || "Estimate", base: EST.baseLabel || "Studio", unpriced: EST.unpricedLabel || "", total: EST.label || "Estimate" } : null,
+      logo: "", preview: null, thumbs: {} };
+    if (PV) {
+      var lines = M.previewState(state.answers).layers.map(function (l) { return l.name + ": " + (l.label || "not picked"); });
+      sheet.preview = { line: lines.join(" · ") + (PV.caption ? " · " + PV.caption : ""), image: "" };
+      try { var pc = document.createElement("canvas"); if ((pv.src || pv.img) && pvDraw(pc)) sheet.preview.image = pc.toDataURL("image/jpeg", 0.8); } catch (err) { /* text only */ }
+    }
+    var jobs = [], left = 0, finished = false;
+    function finish() { if (finished) return; finished = true; done(sheet); }
+    function job(src, put, draw) { jobs.push({ src: src, put: put, draw: draw }); }
+    function thumb(img) {
+      var c = document.createElement("canvas"), x = c.getContext("2d"), S = 128;
+      c.width = S; c.height = S; x.fillStyle = "#fff"; x.fillRect(0, 0, S, S);
+      var w = img.naturalWidth || S, hh = img.naturalHeight || S, photo = /\.jpe?g($|\?)/i.test(img.src) || /^data:image\/jpeg/.test(img.src);
+      var k = photo ? Math.max(S / w, S / hh) : Math.min(S / w, S / hh);
+      x.drawImage(img, (S - w * k) / 2, (S - hh * k) / 2, w * k, hh * k);
+      return c.toDataURL("image/jpeg", 0.8);
+    }
+    function logo(img) {
+      var c = document.createElement("canvas"), k = Math.min(1, 66 / (img.naturalHeight || 66));
+      c.width = Math.round((img.naturalWidth || 200) * k); c.height = Math.round((img.naturalHeight || 66) * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL("image/png");
+    }
+    if (brand.logo) job(brand.logo, function (d) { sheet.logo = d; }, logo);
+    M.summary(state.answers).sections.forEach(function (s) {
+      s.rows.forEach(function (r) {
+        if (r.inactive || !r.images) return;
+        r.images.slice(0, 6).forEach(function (im, i) {
+          job(im.src, function (d) { (sheet.thumbs[r.id] = sheet.thumbs[r.id] || [])[i] = d; }, thumb);
+        });
+      });
+    });
+    left = jobs.length;
+    if (!left) { finish(); return; }
+    setTimeout(finish, 4000);
+    jobs.forEach(function (j) {
+      var img = new Image();
+      function one() { left--; if (!left) finish(); }
+      img.onload = function () { try { j.put(j.draw(img)); } catch (err) { /* leave it out */ } one(); };
+      img.onerror = one;
+      img.src = j.src;
+    });
+  }
+
   function sendNow() {
     if (!SEND_URL || send.status === "sending") return;
     var payload = buildPayload();
     var print = fingerprint();
     send = { status: "sending", error: "" };
     paintSend(true);
-    postWithTimeout(JSON.stringify(payload)).then(function (data) {
+    new Promise(function (resolve) { sheetData(resolve); }).then(function (sheet) {
+      payload.sheet = sheet;
+      return postWithTimeout(JSON.stringify(payload));
+    }).then(function (data) {
       send = { status: "idle", error: "" };
       state.sent = { at: payload.sentAt, submissionId: data.submissionId, fingerprint: print, delivery: data.delivery || "" };
       persist();
