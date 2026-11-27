@@ -782,3 +782,6 @@ body.zoom-open { overflow: hidden; }
 .deck-result { margin-top: 16px; padding: 16px; border-radius: var(--wm-radius-card); background: var(--wm-teal-mist); border: 1px solid var(--wm-teal-line);
   display: grid; gap: 4px; color: var(--wm-ink); font-size: 15px; }
 .deck-result-v { font-size: 28px; font-weight: 500; color: var(--wm-teal-deep); line-height: 1.2; }
+/* Drawings among the answer pictures keep their shape (a square crop makes the labels unreadable). */
+.thumbs img[src$=".svg"] { width: auto; height: 110px; object-fit: contain; border: 1px solid var(--wm-teal-line); }
+@media print { #print-sheet .thumbs img[src$=".svg"] { width: auto; height: 110px; } }

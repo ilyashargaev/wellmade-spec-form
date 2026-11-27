@@ -1418,7 +1418,7 @@
     var brand = SPEC.brand || {};
     var sheet = { title: SPEC.title, modelLine: SPEC.model + (SPEC.modelNote ? " · " + SPEC.modelNote : ""), footer: brand.footer || "",
       estimate: EST ? { title: EST.title || EST.label || "Estimate", base: EST.baseLabel || "Studio", unpriced: EST.unpricedLabel || "", total: EST.label || "Estimate" } : null,
-      logo: "", preview: null, thumbs: {} };
+      logo: "", preview: null, thumbs: {}, drawings: {} };
     if (PV) {
       var lines = M.previewState(state.answers).layers.map(function (l) { return l.name + ": " + (l.label || "not picked"); });
       sheet.preview = { line: lines.join(" · ") + (PV.caption ? " · " + PV.caption : ""), image: "" };
@@ -1428,12 +1428,14 @@
     function finish() { if (finished) return; finished = true; done(sheet); }
     function job(src, put, draw) { jobs.push({ src: src, put: put, draw: draw }); }
     function thumb(img) {
-      var c = document.createElement("canvas"), x = c.getContext("2d"), S = 128;
-      c.width = S; c.height = S; x.fillStyle = "#fff"; x.fillRect(0, 0, S, S);
-      var w = img.naturalWidth || S, hh = img.naturalHeight || S, photo = /\.jpe?g($|\?)/i.test(img.src) || /^data:image\/jpeg/.test(img.src);
-      var k = photo ? Math.max(S / w, S / hh) : Math.min(S / w, S / hh);
-      x.drawImage(img, (S - w * k) / 2, (S - hh * k) / 2, w * k, hh * k);
-      return c.toDataURL("image/jpeg", 0.8);
+      // Photos (swatches) become a square; drawings keep their shape and enough size to read the labels.
+      var w = img.naturalWidth || 128, hh = img.naturalHeight || 128, photo = /\.jpe?g($|\?)/i.test(img.src) || /^data:image\/jpeg/.test(img.src);
+      var c = document.createElement("canvas"), x = c.getContext("2d");
+      c.height = photo ? 128 : 240; c.width = photo ? 128 : Math.round(240 * w / hh);
+      x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+      var k = photo ? Math.max(c.width / w, c.height / hh) : c.height / hh;
+      x.drawImage(img, (c.width - w * k) / 2, (c.height - hh * k) / 2, w * k, hh * k);
+      return c.toDataURL("image/jpeg", 0.85);
     }
     function logo(img) {
       var c = document.createElement("canvas"), k = Math.min(1, 66 / (img.naturalHeight || 66));
@@ -1447,6 +1449,7 @@
         if (r.inactive || !r.images) return;
         r.images.slice(0, 6).forEach(function (im, i) {
           job(im.src, function (d) { (sheet.thumbs[r.id] = sheet.thumbs[r.id] || [])[i] = d; }, thumb);
+          if (!/\.jpe?g($|\?)/i.test(im.src)) sheet.drawings[r.id] = true; // shown larger than a swatch
         });
       });
     });
